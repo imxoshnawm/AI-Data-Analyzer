@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="ku">
+ <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Data Analyzer</title>
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.19/400.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.19/600.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+   :root{--bg:#f8fafc;--card:#ffffff;--muted:#64748b;--text:#0f172a;--brand:#3b82f6;--accent:#10b981;--danger:#ef4444;--border:#e2e8f0;--input-bg:#f1f5f9}
+   *{box-sizing:border-box;margin:0;padding:0}
+   html,body{height:100%; overflow:visible}
+   body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--text);line-height:1.6}
+   .wrap{max-width:1400px;margin:0 auto;padding:20px}
+   .grid{display:grid;grid-template-columns:1fr;gap:20px}
+   @media(min-width:768px){.grid{grid-template-columns:380px 1fr}}
+   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+   .title{font-weight:600;font-size:20px;margin:0 0 16px;color:var(--text)}
+   .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+   input[type="text"], input[type="password"], textarea, select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;transition:border .2s;min-height:44px}
+   @media(max-width:767px){input[type="text"], input[type="password"], textarea, select{font-size:16px;padding:14px}}
+   input:focus, textarea:focus, select:focus{outline:none;border-color:var(--brand)}
+   textarea{min-height:120px;resize:vertical;font-family:inherit}
+   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:500;font-size:14px;transition:all .2s;white-space:nowrap;min-height:44px}
+   @media(max-width:767px){.btn{width:100%;padding:16px 20px}}
+   .btn:hover{background:var(--input-bg);transform:translateY(-1px);box-shadow:0 4px 6px rgba(0,0,0,0.05)}
+   .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+   .btn.primary:hover{background:#2563eb}
+   .btn.success{background:var(--accent);border-color:var(--accent);color:#fff}
+   .btn.success:hover{background:#059669}
+   .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+   .drop{border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;background:var(--input-bg);color:var(--muted);cursor:pointer;transition:all .2s}
+   .drop:hover{border-color:var(--brand);background:#eff6ff}
+   .pill{padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+   .pill:hover{background:var(--card);border-color:var(--brand)}
+   .muted{color:var(--muted);font-size:14px}
+   .charts{display:grid;gap:20px;grid-template-columns:repeat(var(--chart-cols,1),1fr)}
+   @media(min-width:640px){.charts{grid-template-columns:repeat(var(--chart-cols,2),1fr)}}
+   @media(min-width:1024px){.charts{grid-template-columns:repeat(var(--chart-cols,3),1fr)}}
+   .chart-item{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+   .chart-item canvas{height:var(--item-h, var(--chart-h,300px))!important}
+   .diagrams{display:grid;gap:20px;margin-top:20px;grid-template-columns:repeat(var(--diagram-cols,1),1fr)}
+   @media(min-width:768px){.diagrams{grid-template-columns:repeat(var(--diagram-cols,2),1fr)}}
+   .graph{height:var(--diagram-h,320px);background:var(--input-bg);border:1px solid var(--border);border-radius:12px}
+   canvas{background:var(--card);border:1px solid var(--border);border-radius:8px}
+   .footer{display:flex;flex-direction:column;gap:16px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+   .footer .row{width:100%}
+   @media(min-width:768px){.footer{flex-direction:row;justify-content:space-between;align-items:flex-start}}
+   @media(max-width:767px){.footer .row{flex-direction:column;align-items:stretch}.footer .row > *{width:100%}}
+   .charts > div, .diagrams > div, .card{break-inside: avoid; page-break-inside: avoid}
+   .page-break{break-before: page; page-break-before: always}
+   .insights li{margin:8px 0;padding-left:4px}
+   .explanations{list-style:none;padding:0;margin:0}
+   .explanations li{margin:16px 0;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:12px;line-height:1.8;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative}
+   .explanations li:before{content:attr(data-num);position:absolute;left:-12px;top:12px;background:var(--brand);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;box-shadow:0 2px 4px rgba(59,130,246,0.3)}
+   .explanations li:nth-child(even){border-left-color:var(--accent)}
+   .explanations li:nth-child(even):before{background:var(--accent);box-shadow:0 2px 4px rgba(16,185,129,0.3)}
+   @media(max-width:767px){.explanations li{padding:14px 16px;font-size:14px}.explanations li:before{width:24px;height:24px;font-size:12px;left:-10px;top:10px}}
+   .badge{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--brand);font-weight:500;font-size:13px}
+   h1{font-size:28px;font-weight:700;margin-bottom:8px;color:var(--text)}
+   h2,h3{margin:16px 0 12px;color:var(--text)}
+   label{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;display:block}
+   #chatMessages::-webkit-scrollbar{width:8px}
+   #chatMessages::-webkit-scrollbar-track{background:var(--input-bg);border-radius:4px}
+   #chatMessages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+   #chatMessages::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+   .stat-card{background:linear-gradient(135deg,var(--card) 0%,var(--input-bg) 100%);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:transform .2s,box-shadow .2s}
+   .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,0.15)}
+   .stat-value{font-size:28px;font-weight:700;color:var(--brand);margin:8px 0}
+   .stat-label{font-size:13px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+   .stat-change{font-size:12px;font-weight:600;margin-top:6px}
+   .stat-change.positive{color:var(--accent)}
+   .stat-change.negative{color:var(--danger)}
+   .calc-table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card);border-radius:8px;overflow:hidden}
+   .calc-table th{background:var(--brand);color:#fff;padding:12px;text-align:left;font-weight:600;font-size:13px}
+   .calc-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px}
+   .calc-table tr:last-child td{border-bottom:none}
+   .calc-table tr:hover{background:var(--input-bg)}
+   .calc-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+   .calc-section h4{margin:0 0 12px;color:var(--text);font-size:16px;font-weight:600;border-bottom:2px solid var(--border);padding-bottom:6px}
+  </style>
+ </head>
+ <body>
+  <div class="wrap">
+   <h1 style="margin:0 0 14px;font-size:24px;font-weight:600">AI Data Analyzer</h1>
+   <div class="grid">
+    <div class="card">
+     <p class="title">داتاکانت هەڵبژێرە یان بخەرە ناوەوە</p>
+     <div id="drop" class="drop" tabindex="0">
+      فایل لێرە دابەزێنە یان کلیک بکە بۆ هەڵبژاردن
+      <input id="file" type="file" multiple style="display:none" accept=".csv,.xlsx,.xls,.txt,.docx,.pdf,image/*" />
+     </div>
+     <div id="fileList" class="row" style="margin-top:10px"></div>
+     <div style="height:10px"></div>
+     <label class="muted">دەستنوسی زانیاری/کۆمێنت</label>
+     <textarea id="notes" placeholder="باسی داتاکان بکە یان داواکاری تێبنووسە"></textarea>
+     <div class="row" style="margin-top:10px">
+      <button id="analyze" class="btn primary">Analyze</button>
+      <button id="sample" class="btn">Sample Data</button>
+     </div>
+    </div>
+
+    <div class="card" id="resultsCard">
+     <div class="row" style="justify-content:space-between">
+      <p class="title" style="margin-bottom:0">ئەنجامەکان</p>
+      <span id="status" class="badge">Ready</span>
+     </div>
+     
+     <!-- AI Chat Section -->
+     <div id="chatCard" style="margin-top:16px">
+      <h3 style="margin:0 0 16px;color:var(--brand);border-bottom:2px solid var(--border);padding-bottom:8px">
+       🤖 AI Data Analyzer v0.0.1
+      </h3>
+      <div id="chatMessages" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border)">
+       <div style="text-align:center;color:var(--muted);padding:20px;font-style:italic">
+        سڵاو! من AI Data Analyzer-م. دەتوانم یارمەتیت بدەم لە شیکاری داتاکانت. پرسیارێک بکە! 🤖
+       </div>
+      </div>
+      <div class="row" style="gap:8px">
+       <input type="text" id="chatInput" placeholder="پرسیارەکەت لێرە بنووسە..." style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text)">
+       <button id="chatSend" class="btn" style="padding:12px 24px">📤 ناردن</button>
+      </div>
+     </div>
+     
+     <!-- Counting & Calculations Dashboard -->
+     <div id="calculationsWrap" style="margin-top:16px;display:none">
+      <h3 style="margin:12px 0 12px;color:var(--brand);border-bottom:2px solid var(--border);padding-bottom:6px">📊 ژمارەکاری و حیسابات</h3>
+      <div id="statsGrid" class="charts" style="--chart-cols:4;margin-bottom:16px"></div>
+      <div id="calculations" style="margin-top:12px"></div>
+     </div>
+     <div id="insightsWrap">
+      <h3 style="margin:8px 0 8px">Insights</h3>
+      <ul id="insights" class="insights"></ul>
+     </div>
+     <div id="summaryWrap" style="margin-top:8px">
+      <h3 style="margin:8px 0 8px">Summary</h3>
+      <div id="summary" class="muted"></div>
+     </div>
+     <div id="explanationsWrap" style="margin-top:24px">
+      <h2 style="margin:20px 0 16px;font-size:22px;font-weight:600;color:var(--text);border-bottom:2px solid var(--border);padding-bottom:8px">📋 Detailed Explanations</h2>
+      <ul id="explanations" class="explanations"></ul>
+     </div>
+     <div id="charts" class="charts"></div>
+     <div id="diagrams" class="diagrams"></div>
+     <div id="printReport" style="display:none"></div>
+     <div class="footer">
+      <div class="row">
+       <span class="muted">چارتی خۆکار: Bar, Line, Pie, Histogram, Scatter</span>
+       <span class="pill">Layout</span>
+       <select id="chartCols" style="width:auto"><option value="1">1 col</option><option value="2">2 cols</option><option value="3" selected>3 cols</option><option value="4">4 cols</option></select>
+       <select id="chartSize" style="width:auto"><option value="240">Small</option><option value="300" selected>Medium</option><option value="380">Large</option><option value="480">XL</option></select>
+       <select id="diagramSize" style="width:auto"><option value="280">Diag S</option><option value="320" selected>Diag M</option><option value="420">Diag L</option><option value="520">Diag XL</option></select>
+       <span class="pill">PDF</span>
+
+       <label class="muted" style="display:flex;align-items:center;gap:6px"><input id="pdfLandscape" type="checkbox"/> Landscape</label>
+      </div>
+      <div class="row">
+       <button id="download" class="btn success" disabled>Download PDF</button>
+       <button id="exportXlsx" class="btn">Export Excel</button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+
+  <script>
+   // Register ChartJS datalabels plugin globally
+   if(typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined'){
+     Chart.register(ChartDataLabels)
+     // Set default options for all charts
+     Chart.defaults.set('plugins.datalabels', {
+       display: false  // Will be enabled per chart type
+     })
+   }
+   
+   const $ = (id)=>document.getElementById(id)
+   const drop = $("drop"), fileInput = $("file"), fileList = $("fileList")
+   const analyzeBtn = $("analyze"), statusEl = $("status"), chartsEl = $("charts"), insightsEl = $("insights"), downloadBtn=$("download")
+
+   const state = { files: [], charts: [], chartsInstances: [], networks: [], dataPackage: null }
+
+   function uiStatus(text, tone){
+     statusEl.textContent = text
+     statusEl.style.color = tone === 'error' ? 'var(--danger)' : tone === 'ok' ? 'var(--accent)' : '#9fb4ff'
+   }
+
+   function addFiles(list){
+     for(const f of list){ state.files.push(f) }
+     renderFiles()
+   }
+   function renderFiles(){
+     fileList.innerHTML = ''
+     state.files.forEach((f, i)=>{
+       const span = document.createElement('span')
+       span.className = 'pill'
+       span.textContent = f.name
+       span.title = `${f.type || 'unknown'} • ${(f.size/1024).toFixed(1)} KB`
+       span.addEventListener('click', ()=>{ state.files.splice(i,1); renderFiles() })
+       fileList.appendChild(span)
+     })
+   }
+
+   function renderDiagramsFromExtracted(pkg){
+     // Network diagrams disabled in web UI
+     // They are still available in PDF export
+     const container = document.getElementById('diagrams')
+     container.innerHTML = ''
+     state.networks = []
+     return null
+   }
+
+   drop.addEventListener('click', ()=> fileInput.click())
+   drop.addEventListener('dragover', e=>{e.preventDefault(); drop.style.borderColor = '#3b82f6'})
+   drop.addEventListener('dragleave', ()=> drop.style.borderColor = '#2b3240')
+   drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.borderColor = '#2b3240'; addFiles(e.dataTransfer.files) })
+   fileInput.addEventListener('change', e=> addFiles(e.target.files))
+
+   $("sample").addEventListener('click', ()=>{
+     // Enhanced sample data with financial calculations
+     const csv = `Month,Revenue,Expenses,Profit,Customers\nJan,45000,28000,17000,1250\nFeb,52000,31000,21000,1380\nMar,48000,29500,18500,1290\nApr,61000,35000,26000,1520\nMay,68000,38000,30000,1650\nJun,59000,34000,25000,1480\nJul,72000,41000,31000,1720\nAug,75000,43000,32000,1800\nSep,69000,39000,30000,1680\nOct,78000,45000,33000,1850\nNov,82000,47000,35000,1920\nDec,88000,50000,38000,2050`
+     const blob = new Blob([csv],{type:'text/csv'})
+     blob.name = 'company-financial-data.csv'
+     const file = new File([blob], 'company-financial-data.csv', {type:'text/csv'})
+     addFiles([file])
+   })
+
+   async function readFileAsArrayBuffer(file){ return await file.arrayBuffer() }
+   async function readFileAsText(file){ return await file.text() }
+   async function readImageAsDataURL(file){ return new Promise(r=>{ const fr = new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(file) }) }
+
+   async function parseFiles(files){
+     const tables = []
+     const texts = []
+     const images = []
+     for(const file of files){
+       const ext = (file.name.split('.').pop()||'').toLowerCase()
+       try{
+         if(ext === 'csv'){
+           const text = await readFileAsText(file)
+           const parsed = Papa.parse(text, {header:true, dynamicTyping:true})
+           if(parsed.data && parsed.data.length){
+             const cols = Object.keys(parsed.data[0]||{})
+             tables.push({name:file.name, columns:cols, rows:parsed.data})
+           }
+         } else if(ext === 'xlsx' || ext === 'xls'){
+           const ab = await readFileAsArrayBuffer(file)
+           const wb = XLSX.read(ab, {type:'array'})
+           wb.SheetNames.forEach(sn=>{
+             const ws = wb.Sheets[sn]
+             const json = XLSX.utils.sheet_to_json(ws, {defval:null})
+             const cols = json.length ? Object.keys(json[0]) : []
+             tables.push({name:`${file.name}:${sn}`, columns:cols, rows:json})
+           })
+         } else if(ext === 'txt'){ texts.push(await readFileAsText(file)) }
+         else if(ext === 'docx'){
+           const ab = await readFileAsArrayBuffer(file)
+           const res = await window.mammoth.extractRawText({arrayBuffer:ab})
+           texts.push(res.value || '')
+         } else if(ext === 'pdf'){
+           const ab = await readFileAsArrayBuffer(file)
+           const pdf = await pdfjsLib.getDocument({data:ab}).promise
+           let all=''
+           for(let p=1;p<=pdf.numPages;p++){
+             const page = await pdf.getPage(p)
+             const txt = await page.getTextContent()
+             all += txt.items.map(i=>i.str).join(' ') + '\n'
+           }
+           texts.push(all)
+         } else if(file.type.startsWith('image/')){
+           const dataUrl = await readImageAsDataURL(file)
+           images.push({name:file.name, dataUrl})
+         } else { texts.push(await readFileAsText(file).catch(()=>'')) }
+       }catch(err){ console.warn('Parse error', file.name, err) }
+     }
+     return {tables, texts, images}
+   }
+
+   function summarizeData(pkg){
+     const out = { table_summaries: [], text_lengths: pkg.texts.map(t=>t.length) }
+     for(const t of pkg.tables){
+       const sample = t.rows.slice(0,5)
+       out.table_summaries.push({name:t.name, columns:t.columns, row_count:t.rows.length, sample})
+     }
+     return out
+   }
+
+   function parseRoster(text){
+     const lines = (text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean)
+     const rows = []
+     let current = { name:'', role:'', department:'', joined_year:null, joined_month:'' }
+     const roleRegex = /(president|vice\s*president|assistant\s*lecturer|assistant\s*professor|lecturer|professor|dean|head\s*of\s*department|head\s*of\s+.+|director|quality\s*assurance\s*director)/i
+     const joinedRegex = /joined\s*:?\s*([A-Za-z]+)?\s*(\d{4})/i
+     const monthMap = {january:'Jan',february:'Feb',march:'Mar',april:'Apr',may:'May',june:'Jun',july:'Jul',august:'Aug',september:'Sep',october:'Oct',november:'Nov',december:'Dec',jan:'Jan',feb:'Feb',mar:'Mar',apr:'Apr',jun:'Jun',jul:'Jul',aug:'Aug',sep:'Sep',oct:'Oct',nov:'Nov',dec:'Dec'}
+     for(const line of lines){
+       if(/more\s*detail/i.test(line)){
+         if(current.name){ rows.push({...current}); current = { name:'', role:'', department:'', joined_year:null, joined_month:'' } }
+         continue
+       }
+       if(joinedRegex.test(line)){
+         const m = line.match(joinedRegex)
+         const monthRaw = (m?.[1]||'').toLowerCase()
+         current.joined_month = monthMap[monthRaw] || current.joined_month
+         current.joined_year = parseInt(m?.[2]||m?.[1]||'',10) || current.joined_year
+         continue
+       }
+       if(roleRegex.test(line)){
+         const txt = line
+         const roleHit = (txt.match(roleRegex)?.[0]||'').replace(/\s+/g,' ').trim()
+         current.role = normalizeRole(roleHit)
+         const depMatch = txt.match(/head\s*of\s*(.+)/i) || txt.match(/dean\s*of\s*(.+)/i) || txt.match(/director\s*of\s*(.+)/i)
+         if(depMatch){ current.department = depMatch[1].replace(/department/i,'').trim() }
+         continue
+       }
+       // Skip only emails and phone numbers, not all numbers
+      if(/@/.test(line) || /^\+?\d[\d\s\-()]{7,}$/.test(line)){
+        continue
+      } 
+       if(line && (!current.name || /^[A-Z]/.test(line))){
+         if(current.name && (current.role || current.joined_year)){
+           rows.push({...current})
+           current = { name:'', role:'', department:'', joined_year:null, joined_month:'' }
+         }
+         current.name = line
+       }
+     }
+     if(current.name){ rows.push({...current}) }
+     return rows.filter(r=>r.name)
+   }
+
+   function normalizeRole(r){
+     if(!r) return 'Other'
+     const t = r.toLowerCase()
+     if(/vice\s*president/.test(t)) return 'Vice President'
+     if(/president/.test(t)) return 'President'
+     if(/assistant\s*professor/.test(t)) return 'Assistant Professor'
+     if(/professor/.test(t)) return 'Professor'
+     if(/assistant\s*lecturer/.test(t)) return 'Assistant Lecturer'
+     if(/lecturer/.test(t)) return 'Lecturer'
+     if(/head\s*of/.test(t)) return 'Head of Department'
+     if(/dean/.test(t)) return 'Dean'
+     if(/director/.test(t)) return 'Director'
+     return r.replace(/\s+/g,' ').trim()
+   }
+
+   function countBy(arr, key){
+     const m = new Map()
+     for(const a of arr){
+       const k = (a?.[key] ?? '').toString() || 'Unknown'
+       m.set(k, (m.get(k)||0)+1)
+     }
+     const labels = Array.from(m.keys())
+     const values = Array.from(m.values())
+     return { labels, values }
+   }
+
+   function autoChartsFromExtracted(pkg){
+     const table = (pkg.tables||[]).find(t=>t.name==='extracted_from_text')
+     const charts = []
+     if(!table){ return { insights:[], charts:[] } }
+     const rows = table.rows || []
+     const roleAgg = countBy(rows.map(r=>({role:r.role||'Unknown'})), 'role')
+     if(roleAgg.labels.length){
+       charts.push({ id:'role_dist', title:'Distribution by Role', type:'bar', labels: roleAgg.labels, datasets:[{ label:'Role', data: roleAgg.values }] })
+     }
+     const yearAgg = countBy(rows.map(r=>({year:r.joined_year||'Unknown'})), 'year')
+      // sort by numeric year when possible
+     const Y = yearAgg.labels.map((l,i)=>({l, v:yearAgg.values[i]}))
+     Y.sort((a,b)=> (parseInt(a.l)||0)-(parseInt(b.l)||0))
+     if(Y.length){ charts.push({ id:'year_count', title:'Joined Year vs Count', type:'bar', labels:Y.map(o=>o.l), datasets:[{label:'Year', data:Y.map(o=>o.v)}] }) }
+
+     const depAgg = countBy(rows.map(r=>({dep:r.department||'Unknown'})), 'dep')
+     if(depAgg.labels.filter(l=>l!=='Unknown').length){
+       charts.push({ id:'dep_dist', title:'Distribution by Department', type:'bar', labels: depAgg.labels, datasets:[{label:'Department', data: depAgg.values}] })
+     }
+
+     const monthAgg = countBy(rows.map(r=>({m:r.joined_month||''})), 'm')
+     const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+     const M = monthOrder.map(m=>({l:m, v:(monthAgg.labels.indexOf(m)>=0)? monthAgg.values[monthAgg.labels.indexOf(m)] : 0}))
+     if(M.some(x=>x.v>0)){
+       charts.push({ id:'monthly', title:'Monthly Join Trend', type:'line', labels:M.map(x=>x.l), datasets:[{label:'Joins', data:M.map(x=>x.v)}] })
+     }
+
+     if(roleAgg.labels.length>=3){
+       charts.push({ id:'role_pie', title:'Top Roles Share', type:'pie', labels: roleAgg.labels, datasets:[{label:'Share', data: roleAgg.values}] })
+     }
+     return { insights:[], charts }
+   }
+
+   function schemaPrompt(pkg, notes){
+     const meta = summarizeData(pkg)
+     return `تۆ یاریدەدەرێکی داتا و بینینەوەیت. داتا جۆراوجۆرە (جدولەکان، دەق، و وێنە). کاری تۆ:\n- تحلیلکردن و دروستکردنی چارتەکان بە شێوەی JSON تاکەجگە، بێ هێمن.\n- جۆرە چارتە پشتیپێدراوەکان: bar,line,pie,scatter,histogram.\n- پێویستە هەڵبژاردنی بنەماکانی bins بۆ histogram.\n- بڵاوکردنەوەی هەڵسەنگاندنە گرنگەکان لە لیستی insights.\n- بەکاربردنی ناونیشانە باشەکان بۆ چارتەکان.\n- هەموو ده‌رهێنەکان دەبێت لە خوارەوەی JSON بێ بنووسرێت.\n\nدانەکان:\n${JSON.stringify(meta)}\n\nتێبینییەکان/داواکارییەکان:\n${notes || ''}\n\nوەڵام بە JSON بە فۆرماتی خوارەوە بدە:`
+   }
+
+   function jsonShape(){
+     return {
+       insights: ["..."],
+       charts: [
+         { id:"chart1", title:"Title", type:"bar", labels:["A","B"], datasets:[{label:"Series", data:[1,2]}] }
+       ]
+     }
+   }
+
+   function insightsFromExtracted(pkg){
+     const t = (pkg.tables||[]).find(x=>x.name==='extracted_from_text')
+     if(!t) return []
+     const rows = t.rows||[]
+     const by = (k)=>{ const m=new Map(); rows.forEach(r=>{const v=r[k]||'Unknown'; m.set(v,(m.get(v)||0)+1) }); return [...m.entries()].sort((a,b)=>b[1]-a[1]) }
+     const topRole = by('role')[0]; const topYear = by('joined_year')[0]; const topDep = by('department')[0]
+     const years = by('joined_year').filter(([y])=>y&&y!=='Unknown').map(([y,c])=>({y:parseInt(y)||0,c}))
+     years.sort((a,b)=>a.y-b.y)
+     const trend = years.length>1 && years[years.length-1].c>=years[0].c ? 'increase' : 'variation'
+     const total = rows.length
+     const insights = []
+     if(total) insights.push(`Total members parsed: ${total}.`)
+     if(topRole) insights.push(`Most common role is ${topRole[0]} with ${topRole[1]} members.`)
+     if(topDep && topDep[0] !== 'Unknown') insights.push(`Largest department by mentions: ${topDep[0]} (${topDep[1]}).`)
+     if(topYear) insights.push(`Peak joining year is ${topYear[0]} with ${topYear[1]} joiners.`)
+     if(trend==='increase') insights.push(`Overall joining trend shows an increase across years.`)
+     const months = rows.map(r=>r.joined_month).filter(Boolean)
+     if(months.length) insights.push(`Months captured: ${[...new Set(months)].join(', ')}.`)
+     return insights
+   }
+
+   function renderInsights(list){
+     insightsEl.innerHTML = ''
+     list.forEach(i=>{ const li=document.createElement('li'); li.textContent=i; insightsEl.appendChild(li) })
+   }
+
+   function renderSummary(text){
+     document.getElementById('summary').textContent = text || ''
+   }
+
+   function renderExplanations(list){
+     const ul = document.getElementById('explanations')
+     ul.innerHTML = ''
+     ;(list||[]).forEach((i,idx)=>{ 
+       const li=document.createElement('li')
+       li.setAttribute('data-num', idx+1)
+       li.textContent=i
+       ul.appendChild(li)
+     })
+   }
+
+   // ============ ADVANCED COUNTING & CALCULATION FUNCTIONS ============
+   
+   function performCalculations(pkg){
+     const calculations = {
+       stats: [],
+       sections: []
+     }
+     
+     // Process all tables for calculations
+     const tables = pkg.tables || []
+     
+     tables.forEach(table => {
+       const rows = table.rows || []
+       if(rows.length === 0) return
+       
+       const columns = table.columns || Object.keys(rows[0] || {})
+       
+       // Detect numeric columns
+       const numericCols = columns.filter(col => {
+         const vals = rows.map(r => r[col]).filter(v => v != null)
+         return vals.length > 0 && vals.every(v => !isNaN(parseFloat(v)))
+       })
+       
+       // Financial calculations (Revenue, Expenses, Profit, etc.)
+       const financialCalcs = detectFinancialData(table, rows, columns)
+       if(financialCalcs) {
+         calculations.sections.push(financialCalcs)
+         calculations.stats.push(...financialCalcs.stats)
+       }
+       
+       // Advanced Financial Analysis (Debt, Loss, Ratios)
+       const advFinancial = detectAdvancedFinancial(table, rows, columns)
+       if(advFinancial) {
+         calculations.sections.push(advFinancial)
+         calculations.stats.push(...advFinancial.stats)
+       }
+       
+       // Population/Demographic calculations
+       const demoCalcs = detectDemographicData(table, rows, columns)
+       if(demoCalcs) {
+         calculations.sections.push(demoCalcs)
+         calculations.stats.push(...demoCalcs.stats)
+       }
+       
+       // Yearly/Time-based Analysis
+       const yearlyAnalysis = detectYearlyAnalysis(table, rows, columns)
+       if(yearlyAnalysis) {
+         calculations.sections.push(yearlyAnalysis)
+       }
+       
+       // Role/Position Analysis
+       const roleAnalysis = analyzeRolesAndPositions(table, rows, columns)
+       if(roleAnalysis) {
+         calculations.sections.push(roleAnalysis)
+       }
+       
+       // Category/Type Analysis
+       const categoryAnalysis = analyzeCategoriesAndTypes(table, rows, columns)
+       if(categoryAnalysis) {
+         calculations.sections.push(categoryAnalysis)
+       }
+       
+       // General statistical calculations
+       numericCols.forEach(col => {
+         const values = rows.map(r => parseFloat(r[col])).filter(v => !isNaN(v))
+         if(values.length > 0) {
+           const stats = calculateStatistics(values, col, table.name)
+           calculations.sections.push(stats)
+         }
+       })
+       
+       // Count-based calculations
+       const countCalcs = performCountCalculations(table, rows, columns)
+       if(countCalcs) {
+         calculations.sections.push(countCalcs)
+       }
+     })
+     
+     return calculations
+   }
+   
+   function detectFinancialData(table, rows, columns){
+    const revCols = columns.filter(c => /revenue|income|sales|دەرامەت|داهات/i.test(c))
+    const expCols = columns.filter(c => /expense|cost|خەرجی|تێچوون/i.test(c))
+    const profitCols = columns.filter(c => /profit|قازانج/i.test(c))
+    
+    // Must have at least 2 financial columns to be considered financial data
+    const financialColCount = revCols.length + expCols.length + profitCols.length
+    if(financialColCount < 2) return null
+     
+     const section = {
+       title: `💰 حیسابی دارایی - ${table.name}`,
+       type: 'financial',
+       stats: [],
+       tables: []
+     }
+     
+     const revCol = revCols[0]
+     const expCol = expCols[0]
+     
+     if(revCol || expCol){
+       const revenues = revCol ? rows.map(r => parseFloat(r[revCol]) || 0) : []
+       const expenses = expCol ? rows.map(r => parseFloat(r[expCol]) || 0) : []
+       
+       const totalRev = revenues.reduce((a,b) => a+b, 0)
+       const totalExp = expenses.reduce((a,b) => a+b, 0)
+       const profit = totalRev - totalExp
+       const profitMargin = totalRev > 0 ? (profit / totalRev * 100) : 0
+       const avgRev = revenues.length > 0 ? totalRev / revenues.length : 0
+       const avgExp = expenses.length > 0 ? totalExp / expenses.length : 0
+       
+       // Growth calculations
+       let growth = 0
+       if(revenues.length >= 2){
+         const firstRev = revenues[0]
+         const lastRev = revenues[revenues.length - 1]
+         growth = firstRev > 0 ? ((lastRev - firstRev) / firstRev * 100) : 0
+       }
+       
+       section.stats.push(
+         {label: 'کۆی گشتی داهات', value: formatCurrency(totalRev), icon: '💵'},
+         {label: 'کۆی گشتی خەرجی', value: formatCurrency(totalExp), icon: '💸'},
+         {label: 'قازانجی گشتی', value: formatCurrency(profit), change: profit >= 0 ? 'positive' : 'negative', icon: '📈'},
+         {label: 'ڕێژەی قازانج', value: profitMargin.toFixed(2) + '%', change: profitMargin >= 0 ? 'positive' : 'negative', icon: '📊'}
+       )
+       
+       // Detailed table
+       const tableData = []
+       tableData.push(['بابەت', 'بڕ'])
+       tableData.push(['کۆی گشتی داهات', formatCurrency(totalRev)])
+       tableData.push(['کۆی گشتی خەرجی', formatCurrency(totalExp)])
+       tableData.push(['قازانجی ناوەکی', formatCurrency(profit)])
+       tableData.push(['ڕێژەی قازانج', profitMargin.toFixed(2) + '%'])
+       tableData.push(['ناوەندی داهات', formatCurrency(avgRev)])
+       tableData.push(['ناوەندی خەرجی', formatCurrency(avgExp)])
+       if(growth !== 0) tableData.push(['ڕێژەی گەشەکردن', growth.toFixed(2) + '%'])
+       
+       section.tables.push({
+         title: 'پوختەی دارایی',
+         data: tableData
+       })
+       
+       // Monthly/Period breakdown
+       if(rows.length > 1){
+         const periodData = [['ماوە', 'داهات', 'خەرجی', 'قازانج', 'ڕێژە']]
+         rows.forEach((row, idx) => {
+           const period = row[columns[0]] || `Period ${idx+1}`
+           const rev = revCol ? (parseFloat(row[revCol]) || 0) : 0
+           const exp = expCol ? (parseFloat(row[expCol]) || 0) : 0
+           const prof = rev - exp
+           const margin = rev > 0 ? (prof/rev*100).toFixed(1) : '0'
+           periodData.push([
+             period,
+             formatCurrency(rev),
+             formatCurrency(exp),
+             formatCurrency(prof),
+             margin + '%'
+           ])
+         })
+         section.tables.push({
+           title: 'وردەکاری بە ماوە',
+           data: periodData
+         })
+       }
+     }
+     
+     return section
+   }
+   
+   function detectAdvancedFinancial(table, rows, columns){
+    const debtCols = columns.filter(c => /debt|loan|قەرز|قەرزار/i.test(c))
+    const lossCols = columns.filter(c => /loss|deficit|زەرەر|کەسر/i.test(c))
+    const assetCols = columns.filter(c => /asset|سامان|ئاسەت/i.test(c))
+    const liabilityCols = columns.filter(c => /liability|پابەندی/i.test(c))
+    
+    // Must have at least 2 advanced financial columns
+    const advFinancialColCount = debtCols.length + lossCols.length + assetCols.length + liabilityCols.length
+    if(advFinancialColCount < 2) return null
+     
+     const section = {
+       title: `💳 شیکاری دارایی پێشکەوتوو - ${table.name}`,
+       type: 'advanced_financial',
+       stats: [],
+       tables: []
+     }
+     
+     const tableData = [['بابەت', 'بڕ', 'ڕێژە']]
+     let hasData = false
+     
+     // Debt analysis
+     if(debtCols.length > 0){
+       const debtCol = debtCols[0]
+       const debts = rows.map(r => parseFloat(r[debtCol]) || 0)
+       const totalDebt = debts.reduce((a,b) => a+b, 0)
+       const avgDebt = debts.length > 0 ? totalDebt / debts.length : 0
+       const maxDebt = Math.max(...debts)
+       
+       section.stats.push({
+         label: 'کۆی قەرز',
+         value: formatCurrency(totalDebt),
+         icon: '💳',
+         change: totalDebt > 0 ? 'negative' : 'positive'
+       })
+       
+       tableData.push(['کۆی قەرز', formatCurrency(totalDebt), ''])
+       tableData.push(['ناوەندی قەرز', formatCurrency(avgDebt), ''])
+       tableData.push(['زۆرترین قەرز', formatCurrency(maxDebt), ''])
+       hasData = true
+     }
+     
+     // Loss analysis
+     if(lossCols.length > 0){
+       const lossCol = lossCols[0]
+       const losses = rows.map(r => parseFloat(r[lossCol]) || 0)
+       const totalLoss = losses.reduce((a,b) => a+b, 0)
+       
+       section.stats.push({
+         label: 'کۆی زەرەر',
+         value: formatCurrency(totalLoss),
+         icon: '📉',
+         change: 'negative'
+       })
+       
+       tableData.push(['کۆی زەرەر', formatCurrency(totalLoss), ''])
+       hasData = true
+     }
+     
+     // Asset analysis
+     if(assetCols.length > 0){
+       const assetCol = assetCols[0]
+       const assets = rows.map(r => parseFloat(r[assetCol]) || 0)
+       const totalAssets = assets.reduce((a,b) => a+b, 0)
+       
+       section.stats.push({
+         label: 'کۆی سامان',
+         value: formatCurrency(totalAssets),
+         icon: '💰',
+         change: 'positive'
+       })
+       
+       tableData.push(['کۆی سامان', formatCurrency(totalAssets), ''])
+       hasData = true
+       
+       // Calculate ratios if we have both assets and debt
+       if(debtCols.length > 0){
+         const debtCol = debtCols[0]
+         const totalDebt = rows.reduce((sum, r) => sum + (parseFloat(r[debtCol]) || 0), 0)
+         const debtToAssetRatio = totalAssets > 0 ? (totalDebt / totalAssets * 100) : 0
+         
+         section.stats.push({
+           label: 'ڕێژەی قەرز/سامان',
+           value: debtToAssetRatio.toFixed(2) + '%',
+           icon: '📊',
+           change: debtToAssetRatio > 50 ? 'negative' : 'positive'
+         })
+         
+         tableData.push(['ڕێژەی قەرز بۆ سامان', debtToAssetRatio.toFixed(2) + '%', ''])
+       }
+     }
+     
+     if(hasData){
+       section.tables.push({
+         title: 'پوختەی دارایی پێشکەوتوو',
+         data: tableData
+       })
+       return section
+     }
+     
+     return null
+   }
+   
+   function detectDemographicData(table, rows, columns){
+     const popCols = columns.filter(c => /population|people|count|دانیشتوان|ژمارە|خەڵک/i.test(c))
+     const yearCols = columns.filter(c => /year|date|ساڵ|بەروار/i.test(c))
+     
+     if(popCols.length === 0) return null
+     
+     const section = {
+       title: `👥 ژمارەکاری دانیشتوان - ${table.name}`,
+       type: 'demographic',
+       stats: [],
+       tables: []
+     }
+     
+     const popCol = popCols[0]
+     const populations = rows.map(r => parseFloat(r[popCol]) || 0).filter(v => v > 0)
+     
+     if(populations.length > 0){
+       const total = populations.reduce((a,b) => a+b, 0)
+       const avg = total / populations.length
+       const max = Math.max(...populations)
+       const min = Math.min(...populations)
+       
+       // Growth rate
+       let growthRate = 0
+       if(populations.length >= 2){
+         const first = populations[0]
+         const last = populations[populations.length - 1]
+         growthRate = first > 0 ? ((last - first) / first * 100) : 0
+       }
+       
+       section.stats.push(
+         {label: 'کۆی گشتی', value: formatNumber(total), icon: '👥'},
+         {label: 'ناوەند', value: formatNumber(avg), icon: '📊'},
+         {label: 'زۆرترین', value: formatNumber(max), icon: '⬆️'},
+         {label: 'کەمترین', value: formatNumber(min), icon: '⬇️'}
+       )
+       
+       if(growthRate !== 0){
+         section.stats.push({
+           label: 'ڕێژەی گەشەکردن',
+           value: growthRate.toFixed(2) + '%',
+           change: growthRate >= 0 ? 'positive' : 'negative',
+           icon: growthRate >= 0 ? '📈' : '📉'
+         })
+       }
+       
+       // Detailed table
+       const tableData = [['ناوچە/ماوە', 'ژمارە', 'ڕێژە لە کۆی گشتی']]
+       rows.forEach(row => {
+         const label = row[columns[0]] || 'Unknown'
+         const pop = parseFloat(row[popCol]) || 0
+         const percentage = total > 0 ? (pop / total * 100).toFixed(2) : '0'
+         tableData.push([label, formatNumber(pop), percentage + '%'])
+       })
+       
+       section.tables.push({
+         title: 'وردەکاری دابەشبوون',
+         data: tableData
+       })
+     }
+     
+     return section
+   }
+   
+   function calculateStatistics(values, columnName, tableName){
+     const sum = values.reduce((a,b) => a+b, 0)
+     const avg = sum / values.length
+     const max = Math.max(...values)
+     const min = Math.min(...values)
+     const range = max - min
+     
+     // Standard deviation
+     const variance = values.reduce((acc, val) => acc + Math.pow(val - avg, 2), 0) / values.length
+     const stdDev = Math.sqrt(variance)
+     
+     // Median
+     const sorted = [...values].sort((a,b) => a-b)
+     const median = sorted.length % 2 === 0
+       ? (sorted[sorted.length/2 - 1] + sorted[sorted.length/2]) / 2
+       : sorted[Math.floor(sorted.length/2)]
+     
+     return {
+       title: `📈 ئاماری ${columnName} - ${tableName}`,
+       type: 'statistics',
+       tables: [{
+         title: 'ئامارە بنەڕەتییەکان',
+         data: [
+           ['بابەت', 'بڕ'],
+           ['کۆی گشتی', formatNumber(sum)],
+           ['ناوەند (Mean)', formatNumber(avg)],
+           ['ناوەڕاست (Median)', formatNumber(median)],
+           ['زۆرترین', formatNumber(max)],
+           ['کەمترین', formatNumber(min)],
+           ['مەودا (Range)', formatNumber(range)],
+           ['لادانی پێوەری', formatNumber(stdDev)],
+           ['ژمارەی داتا', values.length]
+         ]
+       }]
+     }
+   }
+   
+   function detectYearlyAnalysis(table, rows, columns){
+     const yearCols = columns.filter(c => /year|ساڵ|سال/i.test(c))
+     const dateCols = columns.filter(c => /date|بەروار|وەخت/i.test(c))
+     
+     if(yearCols.length === 0 && dateCols.length === 0) return null
+     
+     const yearCol = yearCols[0] || dateCols[0]
+     const years = {}
+     
+     rows.forEach(row => {
+       let year = row[yearCol]
+       if(year){
+         // Extract year from date if needed
+         if(typeof year === 'string' && year.includes('-')){
+           year = year.split('-')[0]
+         }
+         year = String(year).trim()
+         
+         if(!years[year]) years[year] = {count: 0, data: []}
+         years[year].count++
+         years[year].data.push(row)
+       }
+     })
+     
+     const yearList = Object.keys(years).sort()
+     if(yearList.length === 0) return null
+     
+     const section = {
+       title: `📅 شیکاری ساڵانە - ${table.name}`,
+       type: 'yearly',
+       tables: []
+     }
+     
+     const tableData = [['ساڵ', 'ژمارە', 'ڕێژە']]
+     const total = rows.length
+     
+     yearList.forEach(year => {
+       const count = years[year].count
+       const percentage = total > 0 ? (count / total * 100).toFixed(2) : '0'
+       tableData.push([year, count, percentage + '%'])
+     })
+     
+     // Add trend analysis
+     if(yearList.length >= 2){
+       const firstYear = years[yearList[0]].count
+       const lastYear = years[yearList[yearList.length - 1]].count
+       const trend = lastYear > firstYear ? 'زیادبوون' : lastYear < firstYear ? 'کەمبوون' : 'جێگیر'
+       const trendPercent = firstYear > 0 ? ((lastYear - firstYear) / firstYear * 100).toFixed(2) : '0'
+       
+       tableData.push(['', '', ''])
+       tableData.push(['ڕەوت', trend, trendPercent + '%'])
+     }
+     
+     section.tables.push({
+       title: 'دابەشبوون بەپێی ساڵ',
+       data: tableData
+     })
+     
+     return section
+   }
+   
+   function analyzeRolesAndPositions(table, rows, columns){
+     const roleCols = columns.filter(c => /role|position|title|ڕۆڵ|پێگە|پلە/i.test(c))
+     const deptCols = columns.filter(c => /department|بەش|دەپارتمێنت/i.test(c))
+     
+     if(roleCols.length === 0) return null
+     
+     const roleCol = roleCols[0]
+     const roles = {}
+     
+     rows.forEach(row => {
+       const role = row[roleCol] || 'Unknown'
+       if(!roles[role]) roles[role] = {count: 0, departments: new Set()}
+       roles[role].count++
+       
+       if(deptCols.length > 0){
+         const dept = row[deptCols[0]]
+         if(dept) roles[role].departments.add(dept)
+       }
+     })
+     
+     const section = {
+       title: `👔 شیکاری ڕۆڵەکان - ${table.name}`,
+       type: 'roles',
+       tables: []
+     }
+     
+     const tableData = [['ڕۆڵ', 'ژمارە', 'ڕێژە', 'بەشەکان']]
+     const total = rows.length
+     
+     Object.entries(roles)
+       .sort((a,b) => b[1].count - a[1].count)
+       .forEach(([role, data]) => {
+         const percentage = total > 0 ? (data.count / total * 100).toFixed(2) : '0'
+         const depts = data.departments.size > 0 ? data.departments.size : '-'
+         tableData.push([role, data.count, percentage + '%', depts])
+       })
+     
+     section.tables.push({
+       title: 'دابەشبوون بەپێی ڕۆڵ',
+       data: tableData
+     })
+     
+     return section
+   }
+   
+   function analyzeCategoriesAndTypes(table, rows, columns){
+     const typeCols = columns.filter(c => /type|category|class|جۆر|کاتێگۆری|پۆل/i.test(c))
+     const statusCols = columns.filter(c => /status|state|دۆخ|حاڵەت/i.test(c))
+     const genderCols = columns.filter(c => /gender|sex|ڕەگەز/i.test(c))
+     
+     if(typeCols.length === 0 && statusCols.length === 0 && genderCols.length === 0) return null
+     
+     const section = {
+       title: `🏷️ شیکاری جۆرەکان - ${table.name}`,
+       type: 'categories',
+       tables: []
+     }
+     
+     // Analyze each categorical column
+     const colsToAnalyze = [...typeCols, ...statusCols, ...genderCols].slice(0, 3)
+     
+     colsToAnalyze.forEach(col => {
+       const categories = {}
+       rows.forEach(row => {
+         const cat = row[col] || 'Unknown'
+         categories[cat] = (categories[cat] || 0) + 1
+       })
+       
+       const tableData = [['جۆر', 'ژمارە', 'ڕێژە']]
+       const total = rows.length
+       
+       Object.entries(categories)
+         .sort((a,b) => b[1] - a[1])
+         .forEach(([cat, count]) => {
+           const percentage = total > 0 ? (count / total * 100).toFixed(2) : '0'
+           tableData.push([cat, count, percentage + '%'])
+         })
+       
+       section.tables.push({
+         title: `دابەشبوون بەپێی ${col}`,
+         data: tableData
+       })
+     })
+     
+     return section.tables.length > 0 ? section : null
+   }
+   
+   function performCountCalculations(table, rows, columns){
+     if(rows.length === 0) return null
+     
+     const section = {
+       title: `🔢 ژمارەکردن و دابەشبوون - ${table.name}`,
+       type: 'counting',
+       tables: []
+     }
+     
+     // Count by categorical columns
+     const categoricalCols = columns.filter(col => {
+       const vals = rows.map(r => r[col]).filter(v => v != null)
+       const uniqueCount = new Set(vals).size
+       return uniqueCount > 1 && uniqueCount < rows.length * 0.8 // Not too unique
+     })
+     
+     categoricalCols.slice(0, 3).forEach(col => {
+       const counts = {}
+       rows.forEach(row => {
+         const val = row[col] || 'Unknown'
+         counts[val] = (counts[val] || 0) + 1
+       })
+       
+       const tableData = [['بەها', 'ژمارە', 'ڕێژە']]
+       const total = rows.length
+       Object.entries(counts)
+         .sort((a,b) => b[1] - a[1])
+         .forEach(([key, count]) => {
+           const percentage = (count / total * 100).toFixed(2)
+           tableData.push([key, count, percentage + '%'])
+         })
+       
+       section.tables.push({
+         title: `دابەشبوون بەپێی ${col}`,
+         data: tableData
+       })
+     })
+     
+     return section.tables.length > 0 ? section : null
+   }
+   
+   function formatCurrency(num){
+     return new Intl.NumberFormat('en-US', {
+       style: 'currency',
+       currency: 'USD',
+       minimumFractionDigits: 0,
+       maximumFractionDigits: 0
+     }).format(num)
+   }
+   
+   function formatNumber(num){
+     if(typeof num !== 'number') return String(num)
+     if(num >= 1000000) return (num/1000000).toFixed(2) + 'M'
+     if(num >= 1000) return (num/1000).toFixed(2) + 'K'
+     return num.toFixed(2)
+   }
+   
+   function renderCalculations(calculations){
+     const statsGrid = document.getElementById('statsGrid')
+     const calcDiv = document.getElementById('calculations')
+     const calcWrap = document.getElementById('calculationsWrap')
+     
+     statsGrid.innerHTML = ''
+     calcDiv.innerHTML = ''
+     
+     if(!calculations || (calculations.stats.length === 0 && calculations.sections.length === 0)){
+       calcWrap.style.display = 'none'
+       return
+     }
+     
+     calcWrap.style.display = 'block'
+     
+     // Render stat cards
+     calculations.stats.slice(0, 8).forEach(stat => {
+       const card = document.createElement('div')
+       card.className = 'stat-card'
+       card.innerHTML = `
+         <div class="stat-label">${stat.icon || ''} ${stat.label}</div>
+         <div class="stat-value">${stat.value}</div>
+         ${stat.change ? `<div class="stat-change ${stat.change}">${stat.change === 'positive' ? '▲' : '▼'} ${stat.value.includes('%') ? '' : ''}</div>` : ''}
+       `
+       statsGrid.appendChild(card)
+     })
+     
+     // Render detailed sections
+     calculations.sections.forEach(section => {
+       const sectionDiv = document.createElement('div')
+       sectionDiv.className = 'calc-section'
+       
+       let html = `<h4>${section.title}</h4>`
+       
+       section.tables?.forEach((tbl, tblIdx) => {
+        html += `<p style="font-weight:600;margin:8px 0;color:var(--text)">${tbl.title}</p>`
+        html += '<table class="calc-table">'
+        tbl.data.forEach((row, idx) => {
+          html += '<tr>'
+          row.forEach(cell => {
+            html += idx === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`
+          })
+          html += '</tr>'
+        })
+        html += '</table>'
+        
+        // Add mini chart below each table
+        const chartId = `calc-chart-${section.type}-${tblIdx}`
+        html += `<div style="margin-top:16px;"><canvas id="${chartId}" style="max-height:250px;"></canvas></div>`
+      })
+       
+       sectionDiv.innerHTML = html
+      calcDiv.appendChild(sectionDiv)
+      
+      // Create charts after DOM is updated
+      setTimeout(() => {
+        section.tables?.forEach((tbl, tblIdx) => {
+          const chartId = `calc-chart-${section.type}-${tblIdx}`
+          createCalculationChart(chartId, tbl, section.type)
+        })
+      }, 100)
+    })
+  }
+  
+  function createCalculationChart(canvasId, tableData, sectionType){
+    const canvas = document.getElementById(canvasId)
+    if(!canvas) return
+    
+    const colorPalette = [
+      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+      '#ec4899', '#06b6d4', '#f97316', '#6366f1', '#14b8a6',
+      '#a855f7', '#84cc16', '#f43f5e', '#0ea5e9', '#22c55e'
+    ]
+    
+    // Extract data from table (skip header row)
+    const data = tableData.data.slice(1).filter(row => row[0] && row[1] && row[0] !== '')
+    if(data.length === 0) return
+    
+    const labels = data.map(row => String(row[0]).substring(0, 30)) // Limit label length
+    const values = data.map(row => {
+      const val = String(row[1]).replace(/[,%]/g, '')
+      return parseFloat(val) || 0
+    })
+    
+    // Determine chart type based on data
+    let chartType = 'bar'
+    if(sectionType === 'yearly' || labels.some(l => /\d{4}/.test(l))){
+      chartType = 'line'
+    }
+    if(data.length <= 6 && !sectionType.includes('yearly')){
+      chartType = 'doughnut'
+    }
+    
+    const backgroundColors = values.map((_, i) => colorPalette[i % colorPalette.length] + 'CC')
+    const borderColors = values.map((_, i) => colorPalette[i % colorPalette.length])
+    
+    const chartConfig = {
+      type: chartType,
+      data: {
+        labels: labels,
+        datasets: [{
+          label: tableData.title || 'Data',
+          data: values,
+          backgroundColor: chartType === 'line' ? colorPalette[0] + '40' : backgroundColors,
+          borderColor: chartType === 'line' ? colorPalette[0] : borderColors,
+          borderWidth: 2,
+          tension: 0.4,
+          fill: chartType === 'line'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2.5,
+        plugins: {
+          legend: {
+            display: chartType === 'doughnut',
+            position: 'right',
+            labels: {
+              color: '#475569',
+              font: { size: 11, weight: '600' },
+              padding: 10,
+              boxWidth: 10
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#f1f5f9',
+            bodyColor: '#cbd5e1',
+            padding: 10,
+            cornerRadius: 6,
+            callbacks: chartType === 'doughnut' ? {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                const percentage = ((context.parsed / total) * 100).toFixed(1)
+                return `${context.label}: ${context.parsed} (${percentage}%)`
+              }
+            } : {}
+          }
+        },
+        scales: chartType !== 'doughnut' ? {
+          x: {
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 10 },
+              maxRotation: 45,
+              minRotation: 0
+            },
+            grid: { display: false }
+          },
+          y: {
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 10 }
+            },
+            grid: { color: '#e2e8f0', lineWidth: 1 }
+          }
+        } : {}
+      }
+    }
+    
+    try {
+      new Chart(canvas, chartConfig)
+    } catch(err) {
+      console.error('Chart creation error:', err)
+    }
+  }
+
+   function randomColor(i){
+     const palette = ['#6ea8fe','#f472b6','#22c55e','#f59e0b','#a78bfa','#2dd4bf','#ef4444']
+     return palette[i % palette.length]
+   }
+
+   function applyLayout(){
+     const chartsWrap = document.getElementById('charts')
+     const diagramsWrap = document.getElementById('diagrams')
+     chartsWrap.style.setProperty('--chart-cols', state.chartCols || 3)
+     chartsWrap.style.setProperty('--chart-h', (state.chartH || 300)+'px')
+     diagramsWrap.style.setProperty('--diagram-cols', Math.min(3, state.chartCols||2))
+     diagramsWrap.style.setProperty('--diagram-h', Math.max(280, (state.chartH||300))+'px')
+   }
+
+   function renderCharts(spec){
+     // cleanup
+     state.chartsInstances.forEach(c=>{try{c.destroy()}catch{}})
+     state.chartsInstances = []
+     chartsEl.innerHTML = ''
+     const charts = Array.isArray(spec.charts) ? spec.charts : []
+     charts.forEach((cSpec, idx)=>{
+       const wrap = document.createElement('div')
+       wrap.className = 'chart-item'
+       const titleRow = document.createElement('div'); titleRow.style.display='flex'; titleRow.style.alignItems='center'; titleRow.style.justifyContent='space-between';
+       const h = document.createElement('h4'); h.textContent = cSpec.title || `Chart ${idx+1}`; h.style.margin='6px 2px'
+       const sizeSel = document.createElement('select'); sizeSel.innerHTML = '<option value="240">S</option><option value="300" selected>M</option><option value="380">L</option><option value="480">XL</option>';
+       sizeSel.style.background='#0f1115'; sizeSel.style.color='#cbd5e1'; sizeSel.style.border='1px solid #283041'; sizeSel.style.borderRadius='8px'; sizeSel.style.padding='6px'; sizeSel.style.height='34px'; sizeSel.style.margin='2px'; sizeSel.addEventListener('change', (e)=>{ wrap.style.setProperty('--item-h', e.target.value+'px') })
+       titleRow.appendChild(h); titleRow.appendChild(sizeSel)
+       const canvas = document.createElement('canvas')
+       canvas.style.imageRendering = '-webkit-optimize-contrast'
+       canvas.style.imageRendering = 'crisp-edges'
+       wrap.appendChild(titleRow); wrap.appendChild(canvas); chartsEl.appendChild(wrap)
+      
+      // Set very high DPI for sharp rendering
+      const ctx = canvas.getContext('2d', { 
+        alpha: false, 
+        willReadFrequently: false,
+        desynchronized: true
+      })
+      const dpr = Math.max(window.devicePixelRatio || 2, 4) // Increased to 4 for better quality
+      
+      // Colorful palette for better visualization
+      const colorPalette = [
+        '#3b82f6', // Blue
+        '#10b981', // Green
+        '#f59e0b', // Amber
+        '#ef4444', // Red
+        '#8b5cf6', // Purple
+        '#ec4899', // Pink
+        '#06b6d4', // Cyan
+        '#f97316', // Orange
+        '#6366f1', // Indigo
+        '#14b8a6', // Teal
+        '#a855f7', // Violet
+        '#84cc16', // Lime
+        '#f43f5e', // Rose
+        '#0ea5e9', // Sky
+        '#22c55e'  // Emerald
+      ]
+      
+      const labels = cSpec.labels || []
+      const datasets = (cSpec.datasets||[]).map((ds,i)=>({
+        label: ds.label || `Series ${i+1}`,
+        data: ds.data || [],
+        borderColor: ds.color || colorPalette[i % colorPalette.length],
+        backgroundColor: (ds.color || colorPalette[i % colorPalette.length]) + '80',
+        borderWidth: 2,
+        tension: 0.4
+      }))
+      let type = cSpec.type
+      
+      const commonOptions = {
+        maintainAspectRatio: false,
+        devicePixelRatio: dpr,
+        responsive: true,
+        animation: { duration: 750 },
+        elements: {
+          point: { radius: 4, hitRadius: 8, hoverRadius: 6 },
+          line: { borderWidth: 3, tension: 0.4 },
+          bar: { borderWidth: 0 }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#475569',
+              font: { size: 14, weight: '600', family: 'Inter, sans-serif' },
+              padding: 15,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 12,
+              boxHeight: 12
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleColor: '#f1f5f9',
+            bodyColor: '#cbd5e1',
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 14,
+            cornerRadius: 8,
+            titleFont: { size: 15, weight: '700' },
+            bodyFont: { size: 14 },
+            displayColors: true,
+            boxWidth: 12,
+            boxHeight: 12
+          },
+          datalabels: {
+            display: type === 'bar' || type === 'pie' || type === 'doughnut',
+            color: type === 'bar' ? '#1f2937' : '#fff',
+            anchor: type === 'bar' ? 'end' : 'center',
+            align: type === 'bar' ? 'top' : 'center',
+            font: {
+              weight: 'bold',
+              size: type === 'bar' ? 12 : 14
+            },
+            formatter: (value, ctx) => {
+              if(type === 'bar'){
+                return value
+              }
+              // For pie/doughnut, show percentage
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
+              const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+              return percentage + '%'
+            }
+          }
+        },
+        scales: type !== 'pie' && type !== 'doughnut' ? {
+          x: {
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 13, weight: '500', family: 'Inter, sans-serif' },
+              padding: 8
+            },
+            grid: { color: '#e2e8f0', lineWidth: 1.5, drawBorder: true }
+          },
+          y: {
+            ticks: { 
+              color: '#64748b', 
+              font: { size: 13, weight: '500', family: 'Inter, sans-serif' },
+              padding: 8
+            },
+            grid: { color: '#e2e8f0', lineWidth: 1.5, drawBorder: true }
+          }
+        } : {}
+      }
+      
+      if(type==='histogram'){
+        const values = datasets[0]?.data || []
+        const bins = Math.max(5, Math.ceil(Math.sqrt(values.length)))
+        const min = Math.min(...values), max = Math.max(...values)
+        const step = (max-min)/bins || 1
+        const counts = new Array(bins).fill(0)
+        values.forEach(v=>{ const idx = Math.min(bins-1, Math.floor((v-min)/step)); counts[idx]++ })
+        const lbls = counts.map((_,i)=>`${(min+i*step).toFixed(1)}–${(min+(i+1)*step).toFixed(1)}`)
+        type = 'bar'
+        state.chartsInstances.push(new Chart(canvas, {
+          type, 
+          data: {
+            labels: lbls, 
+            datasets: [{
+              label: cSpec.title||'Histogram', 
+              data: counts, 
+              backgroundColor: colorPalette.map(c => c + '80'), 
+              borderColor: colorPalette,
+              borderWidth: 2
+            }]
+          }, 
+          options: commonOptions
+        }))
+        return
+      }
+      
+      // Special handling for pie/doughnut charts - use multiple colors
+      if(type === 'pie' || type === 'doughnut'){
+        const dataValues = datasets[0]?.data || []
+        const backgroundColors = dataValues.map((_, i) => colorPalette[i % colorPalette.length] + 'CC')
+        const borderColors = dataValues.map((_, i) => colorPalette[i % colorPalette.length])
+        
+        datasets[0].backgroundColor = backgroundColors
+        datasets[0].borderColor = borderColors
+        datasets[0].borderWidth = 3
+        datasets[0].hoverOffset = 15
+        
+        // Enhanced options for pie/doughnut
+        commonOptions.plugins.legend.position = 'right'
+        commonOptions.plugins.legend.labels.padding = 20
+        commonOptions.plugins.legend.labels.font.size = 13
+        commonOptions.plugins.tooltip.callbacks = {
+          label: function(context) {
+            const label = context.label || ''
+            const value = context.parsed || 0
+            const total = context.dataset.data.reduce((a, b) => a + b, 0)
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+            return `${label}: ${value} (${percentage}%)`
+          }
+        }
+      }
+      
+      state.chartsInstances.push(new Chart(canvas, {type, data:{labels, datasets}, options: commonOptions}))
+     })
+     applyLayout()
+   }
+
+   
+
+   const BASE_URL = (location.origin.startsWith('http')) ? '' : 'http://localhost:3077'
+
+   async function analyze(){
+     uiStatus('Parsing...', '')
+     const pkg = await parseFiles(state.files)
+     state.dataPackage = pkg
+     const notes = $("notes").value
+     const extracted = parseRoster(notes)
+     if(extracted.length){
+       (pkg.tables = pkg.tables || []).push({ name:'extracted_from_text', columns:['name','role','joined_year'], rows: extracted })
+     }
+     uiStatus('Sending to server...', '')
+
+     try{
+       const res = await fetch(`${BASE_URL}/api/analyze`,{
+         method:'POST',
+         headers:{'Content-Type':'application/json'},
+         body: JSON.stringify({ tables: pkg.tables, texts: [...pkg.texts, notes].filter(Boolean), notes })
+       })
+       if(!res.ok){ const t = await res.text(); throw new Error(t) }
+       const spec = await res.json()
+       let insights = Array.isArray(spec.insights)?spec.insights:[]
+       if(insights.length < 6){ insights = insights.concat(insightsFromExtracted(pkg)) }
+       renderSummary(spec.summary||'')
+       renderExplanations(Array.isArray(spec.explanations)?spec.explanations:[])
+       let chartsSpec = spec
+       if(!Array.isArray(spec.charts) || spec.charts.length < 3){
+         chartsSpec = autoChartsFromExtracted(pkg)
+       }
+       renderInsights(insights)
+       renderCharts(chartsSpec)
+       renderDiagramsFromExtracted(pkg)
+       
+       // Perform calculations
+       const calculations = performCalculations(pkg)
+       renderCalculations(calculations)
+       
+       uiStatus('Done', 'ok')
+       downloadBtn.disabled = false
+       state.charts = spec.charts || []
+     }catch(err){
+       console.error(err)
+       uiStatus('Server Error', 'error')
+       alert(err.message)
+       downloadBtn.disabled = false
+     }
+   }
+
+   analyzeBtn.addEventListener('click', analyze)
+   state.chartCols = 3; state.chartH = 300
+   document.getElementById('chartCols').addEventListener('change', (e)=>{ state.chartCols = parseInt(e.target.value,10)||3; applyLayout() })
+   document.getElementById('chartSize').addEventListener('change', (e)=>{ state.chartH = parseInt(e.target.value,10)||300; applyLayout() })
+   document.getElementById('diagramSize').addEventListener('change', (e)=>{ state.chartH = state.chartH; state.diagramH = parseInt(e.target.value,10)||320; document.getElementById('diagrams').style.setProperty('--diagram-h', state.diagramH+'px') })
+
+   downloadBtn.addEventListener('click', async ()=>{
+    downloadBtn.disabled = true
+    downloadBtn.textContent = 'Generating PDF...'
+    
+    // Show progress indicator
+    uiStatus('Generating PDF... Please wait', '')
+    
+    // Use setTimeout to allow UI to update
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    try {
+      const landscape = document.getElementById('pdfLandscape').checked
+      const { jsPDF } = window.jspdf
+      const pdf = new jsPDF({
+        orientation: landscape ? 'landscape' : 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      })
+      
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 15
+      const contentWidth = pageWidth - 2 * margin
+      let yPos = margin
+      
+      // Helper to add new page if needed
+      const checkPageBreak = (neededHeight) => {
+        if (yPos + neededHeight > pageHeight - margin) {
+          pdf.addPage()
+          yPos = margin
+          return true
+        }
+        return false
+      }
+      
+      // Helper function to add Kurdish text as image
+      const addKurdishText = async (text, fontSize, isBold, x, y, maxWidth) => {
+        const tempDiv = document.createElement('div')
+        tempDiv.style.cssText = `
+          position: absolute;
+          left: -9999px;
+          font-family: Inter, sans-serif;
+          font-size: ${fontSize}px;
+          font-weight: ${isBold ? 'bold' : 'normal'};
+          color: #1f2937;
+          padding: 5px;
+          background: white;
+          max-width: ${maxWidth}px;
+          line-height: 1.4;
+        `
+        tempDiv.textContent = text
+        document.body.appendChild(tempDiv)
+        
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          backgroundColor: '#ffffff'
+        })
+        document.body.removeChild(tempDiv)
+        
+        const imgData = canvas.toDataURL('image/png')
+        const imgWidth = (canvas.width / 2) * 0.264583 // px to mm
+        const imgHeight = (canvas.height / 2) * 0.264583
+        
+        pdf.addImage(imgData, 'PNG', x, y, Math.min(imgWidth, maxWidth * 0.264583), imgHeight)
+        return imgHeight
+      }
+      
+      // Title
+      pdf.setFontSize(24)
+      pdf.setFont('helvetica', 'bold')
+      pdf.setTextColor(17, 24, 39)
+      pdf.text('AI Data Analyzer Report', margin, yPos)
+      yPos += 10
+      pdf.setLineWidth(0.5)
+      pdf.setDrawColor(59, 130, 246)
+      pdf.line(margin, yPos, pageWidth - margin, yPos)
+      yPos += 8
+      
+      // Date
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(107, 114, 128)
+      pdf.text('Generated: ' + new Date().toLocaleString(), margin, yPos)
+      yPos += 12
+      
+      // Summary
+      const summary = document.getElementById('summary').textContent
+      if(summary){
+        checkPageBreak(20)
+        pdf.setFontSize(16)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(31, 41, 55)
+        pdf.text('Summary', margin, yPos)
+        yPos += 8
+        pdf.setFontSize(11)
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(55, 65, 81)
+        const summaryLines = pdf.splitTextToSize(summary, contentWidth)
+        summaryLines.forEach(line => {
+          checkPageBreak(6)
+          pdf.text(line, margin, yPos)
+          yPos += 6
+        })
+        yPos += 6
+      }
+      
+      // Insights
+      const insights = Array.from(document.querySelectorAll('#insights li')).map(li=>li.textContent)
+      if(insights.length){
+        checkPageBreak(20)
+        pdf.setFontSize(16)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(31, 41, 55)
+        pdf.text('Key Insights', margin, yPos)
+        yPos += 8
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(55, 65, 81)
+        insights.forEach((insight, idx) => {
+          checkPageBreak(10)
+          const lines = pdf.splitTextToSize(`${idx+1}. ${insight}`, contentWidth - 5)
+          lines.forEach(line => {
+            checkPageBreak(5)
+            pdf.text(line, margin + 2, yPos)
+            yPos += 5
+          })
+          yPos += 2
+        })
+        yPos += 6
+      }
+      
+      // Explanations
+      const explanations = Array.from(document.querySelectorAll('#explanations li')).map(li=>li.textContent)
+      if(explanations.length){
+        checkPageBreak(20)
+        pdf.setFontSize(16)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(31, 41, 55)
+        pdf.text('Detailed Explanations', margin, yPos)
+        yPos += 8
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(55, 65, 81)
+        explanations.forEach((exp, idx) => {
+          checkPageBreak(15)
+          const lines = pdf.splitTextToSize(`${idx+1}. ${exp}`, contentWidth - 5)
+          lines.forEach(line => {
+            checkPageBreak(5)
+            pdf.text(line, margin + 2, yPos)
+            yPos += 5
+          })
+          yPos += 3
+        })
+        yPos += 6
+      }
+      
+      // Calculations & Statistics
+      const calcSections = Array.from(document.querySelectorAll('.calc-section'))
+      if(calcSections.length){
+        pdf.addPage()
+        yPos = margin
+        
+        // Kurdish title as image
+        const titleHeight = await addKurdishText('📊 ژمارەکاری و حیسابات', 18, true, margin, yPos, contentWidth)
+        yPos += titleHeight + 2
+        pdf.setLineWidth(0.5)
+        pdf.setDrawColor(59, 130, 246)
+        pdf.line(margin, yPos, pageWidth - margin, yPos)
+        yPos += 8
+        
+        calcSections.forEach((section, idx) => {
+          const title = section.querySelector('h4')?.textContent || `Section ${idx+1}`
+          const tables = section.querySelectorAll('.calc-table')
+          
+          // Section title - skip for now, will be handled by table export
+          checkPageBreak(20)
+          pdf.setFontSize(14)
+          pdf.setFont('helvetica', 'bold')
+          pdf.setTextColor(31, 41, 55)
+          // Skip Kurdish text for section titles to avoid async issues
+          yPos += 8
+          
+          // Process each table in the section
+          tables.forEach((table, tableIdx) => {
+            const tableTitle = table.previousElementSibling?.textContent
+            if(tableTitle && tableTitle.includes(':') === false){
+              checkPageBreak(10)
+              pdf.setFontSize(11)
+              pdf.setFont('helvetica', 'bold')
+              pdf.setTextColor(55, 65, 81)
+              pdf.text(tableTitle, margin, yPos)
+              yPos += 6
+            }
+            
+            const rows = Array.from(table.querySelectorAll('tr'))
+            if(rows.length > 0){
+              // Calculate column widths
+              const numCols = rows[0].querySelectorAll('th, td').length
+              const colWidth = contentWidth / numCols
+              
+              rows.forEach((row, rowIdx) => {
+                const cells = Array.from(row.querySelectorAll('th, td'))
+                checkPageBreak(8)
+                
+                let xPos = margin
+                cells.forEach((cell, cellIdx) => {
+                  const text = cell.textContent.trim()
+                  
+                  if(rowIdx === 0){
+                    // Header row
+                    pdf.setFillColor(59, 130, 246)
+                    pdf.rect(xPos, yPos - 5, colWidth, 7, 'F')
+                    pdf.setFontSize(9)
+                    pdf.setFont('helvetica', 'bold')
+                    pdf.setTextColor(255, 255, 255)
+                  } else {
+                    // Data row
+                    if(rowIdx % 2 === 0){
+                      pdf.setFillColor(248, 250, 252)
+                      pdf.rect(xPos, yPos - 5, colWidth, 7, 'F')
+                    }
+                    pdf.setFontSize(8)
+                    pdf.setFont('helvetica', 'normal')
+                    pdf.setTextColor(55, 65, 81)
+                  }
+                  
+                  // Draw cell border
+                  pdf.setDrawColor(226, 232, 240)
+                  pdf.rect(xPos, yPos - 5, colWidth, 7)
+                  
+                  // Draw text
+                  const lines = pdf.splitTextToSize(text, colWidth - 2)
+                  pdf.text(lines[0] || '', xPos + 1, yPos)
+                  
+                  xPos += colWidth
+                })
+                
+                yPos += 7
+              })
+              
+              yPos += 4
+            }
+            
+            // Add calculation chart after table
+            const sectionType = section.querySelector('h4')?.textContent.includes('ساڵانە') ? 'yearly' : 
+                               section.querySelector('h4')?.textContent.includes('ڕۆڵ') ? 'roles' : 'counting'
+            const chartId = `calc-chart-${sectionType}-${tableIdx}`
+            const chartCanvas = document.getElementById(chartId)
+            
+            if(chartCanvas){
+              checkPageBreak(80)
+              
+              // Get chart image
+              const displayWidth = chartCanvas.offsetWidth || chartCanvas.width
+              const displayHeight = chartCanvas.offsetHeight || chartCanvas.height
+              const imgData = chartCanvas.toDataURL('image/jpeg', 0.95)
+              
+              // Calculate dimensions to fit in PDF
+              const maxWidth = contentWidth
+              const maxHeight = 70
+              let imgWidth = maxWidth
+              let imgHeight = (displayHeight / displayWidth) * maxWidth
+              
+              if(imgHeight > maxHeight){
+                imgHeight = maxHeight
+                imgWidth = (displayWidth / displayHeight) * maxHeight
+              }
+              
+              // Center the chart
+              const xOffset = margin + (contentWidth - imgWidth) / 2
+              
+              pdf.addImage(imgData, 'JPEG', xOffset, yPos, imgWidth, imgHeight)
+              yPos += imgHeight + 8
+            }
+          })
+          
+          yPos += 6
+        })
+      }
+      
+      // Charts
+      const chartsCanvases = Array.from(document.querySelectorAll('#charts canvas'))
+      if(chartsCanvases.length){
+        pdf.addPage()
+        yPos = margin
+        pdf.setFontSize(16)
+        pdf.setFont('helvetica', 'bold')
+        pdf.setTextColor(31, 41, 55)
+        pdf.text('Data Visualizations', margin, yPos)
+        yPos += 10
+        
+        for(let i = 0; i < chartsCanvases.length; i++){
+          const canvas = chartsCanvases[i]
+          const chartTitle = canvas.closest('.chart-item')?.querySelector('h4')?.textContent || `Chart ${i+1}`
+          
+          // Get the actual display size
+          const displayWidth = canvas.offsetWidth || canvas.width
+          const displayHeight = canvas.offsetHeight || canvas.height
+          
+          // Use the original canvas directly with proper quality
+          // Chart.js already renders at high DPI, no need to scale
+          const imgData = canvas.toDataURL('image/jpeg', 0.95)  // JPEG with 95% quality for smaller size
+          
+          // Allow UI to breathe between charts
+          if(i % 2 === 0 && i > 0) await new Promise(resolve => setTimeout(resolve, 50))
+          
+          const imgWidth = contentWidth
+          const imgHeight = (displayHeight / displayWidth) * imgWidth
+          
+          checkPageBreak(imgHeight + 15)
+          pdf.setFontSize(12)
+          pdf.setFont('helvetica', 'bold')
+          pdf.text(chartTitle, margin, yPos)
+          yPos += 6
+          pdf.addImage(imgData, 'JPEG', margin, yPos, imgWidth, imgHeight, undefined, 'FAST')
+          yPos += imgHeight + 8
+        }
+      }
+      
+      // Network Diagrams are disabled in web UI, so skip in PDF too
+      
+      // Save PDF
+      pdf.save('analysis-report.pdf')
+      uiStatus('PDF generated successfully!', 'ok')
+    } catch(err) {
+      console.error('PDF Error:', err)
+      uiStatus('PDF generation failed', 'error')
+      alert('Error generating PDF: ' + err.message)
+    } finally {
+      downloadBtn.disabled = false
+      downloadBtn.textContent = 'Download PDF'
+    }
+  })
+
+  document.getElementById('exportXlsx').addEventListener('click', async ()=>{
+    const exportBtn = document.getElementById('exportXlsx')
+    exportBtn.disabled = true
+    exportBtn.textContent = 'Generating Excel...'
+    uiStatus('Generating Excel... Please wait', '')
+    
+    // Allow UI to update
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    try {
+      const wb = XLSX.utils.book_new()
+    
+    // Sheet 1: Complete Report with all text
+    const summary = document.getElementById('summary').textContent || ''
+    const insights = Array.from(document.querySelectorAll('#insights li')).map(li=>li.textContent)
+    const explanations = Array.from(document.querySelectorAll('#explanations li')).map(li=>li.textContent)
+    
+    // Helper function to split long text into chunks (Excel limit: 32767 chars)
+    const splitText = (text, maxLen = 32000) => {
+      if(text.length <= maxLen) return [text]
+      const chunks = []
+      let start = 0
+      while(start < text.length) {
+        chunks.push(text.substring(start, start + maxLen))
+        start += maxLen
+      }
+      return chunks
+    }
+    
+    const reportData = [
+      ['AI DATA ANALYZER - COMPLETE REPORT'],
+      ['Generated:', new Date().toLocaleString()],
+      [''],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ['SUMMARY'],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ...splitText(summary).map(chunk => [chunk]),
+      [''],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ['KEY INSIGHTS'],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ...insights.map((t,i)=>{
+        const text = `${i+1}. ${t}`
+        return splitText(text, 32000).map((chunk, idx) => idx === 0 ? [chunk] : ['   ' + chunk])
+      }).flat(),
+      [''],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ['DETAILED EXPLANATIONS'],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ...explanations.map((t,i)=>{
+        const text = `${i+1}. ${t}`
+        return splitText(text, 32000).map((chunk, idx) => idx === 0 ? [chunk] : ['   ' + chunk])
+      }).flat(),
+      [''],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ['CHARTS & VISUALIZATIONS'],
+      ['═══════════════════════════════════════════════════════════════════'],
+      ['Note: Chart images are embedded in the Charts sheet below.'],
+      ['Chart data is available in structured format in Charts Data sheet.']
+    ]
+    const ws1 = XLSX.utils.aoa_to_sheet(reportData)
+    ws1['!cols'] = [{wch:120}]
+    XLSX.utils.book_append_sheet(wb, ws1, 'Full Report')
+    
+    // Sheet 2: Extracted Roster/Faculty Data
+    const t = (state.dataPackage?.tables||[]).find(x=>x.name==='extracted_from_text')
+    if(t && t.rows && t.rows.length){
+      const ws2 = XLSX.utils.json_to_sheet(t.rows)
+      ws2['!cols'] = [{wch:30},{wch:25},{wch:25},{wch:15},{wch:15}]
+      XLSX.utils.book_append_sheet(wb, ws2, 'Faculty Data')
+    }
+    
+    // Sheet 3: All Uploaded Tables (CSV/Excel)
+    const allTables = (state.dataPackage?.tables||[]).filter(x=>x.name!=='extracted_from_text')
+    allTables.forEach((table,idx)=>{
+      if(table.rows && table.rows.length){
+        const ws = XLSX.utils.json_to_sheet(table.rows)
+        const sheetName = table.name.substring(0,30) || `Data${idx+1}`
+        XLSX.utils.book_append_sheet(wb, ws, sheetName)
+      }
+    })
+    
+    // Network Diagrams are disabled, so skip in Excel
+    
+    // Sheet 5: Charts Structured Data
+    const charts = (state.charts||[])
+    if(charts.length){
+      const chartsData = [
+        ['CHARTS DATA - STRUCTURED FORMAT'],
+        [''],
+        ['Chart Title', 'Type', 'Labels', 'Dataset 1', 'Dataset 2', 'Dataset 3']
+      ]
+      charts.forEach(c=>{
+        const labels = (c.labels||[]).join(', ')
+        const ds1 = c.datasets?.[0] ? `${c.datasets[0].label}: ${(c.datasets[0].data||[]).join(', ')}` : ''
+        const ds2 = c.datasets?.[1] ? `${c.datasets[1].label}: ${(c.datasets[1].data||[]).join(', ')}` : ''
+        const ds3 = c.datasets?.[2] ? `${c.datasets[2].label}: ${(c.datasets[2].data||[]).join(', ')}` : ''
+        chartsData.push([c.title||'', c.type||'', labels, ds1, ds2, ds3])
+      })
+      const ws5 = XLSX.utils.aoa_to_sheet(chartsData)
+      ws5['!cols'] = [{wch:35},{wch:12},{wch:50},{wch:50},{wch:50},{wch:50}]
+      XLSX.utils.book_append_sheet(wb, ws5, 'Charts Data')
+    }
+    
+    // Sheet 6: Diagrams
+    const diagramCanvases = Array.from(document.querySelectorAll('#diagrams canvas'))
+    if(diagramCanvases.length){
+      const diagData = [
+        ['NETWORK DIAGRAMS'],
+        [''],
+        ['Diagram #', 'Title', 'Image Data (Base64)']
+      ]
+      diagramCanvases.forEach((c,i)=>{
+        // Use JPEG for much smaller file size
+        const base64 = c.toDataURL('image/jpeg', 0.90)
+        diagData.push([i+1, `Network Diagram ${i+1}`, base64])
+      })
+      const ws6 = XLSX.utils.aoa_to_sheet(diagData)
+      ws6['!cols'] = [{wch:10},{wch:30},{wch:100}]
+      XLSX.utils.book_append_sheet(wb, ws6, 'Diagrams')
+    }
+    
+      XLSX.writeFile(wb, 'analysis-complete-report.xlsx')
+      uiStatus('Excel generated successfully!', 'ok')
+    } catch(err) {
+      console.error('Excel Error:', err)
+      uiStatus('Excel generation failed', 'error')
+      alert('Error generating Excel: ' + err.message)
+    } finally {
+      exportBtn.disabled = false
+      exportBtn.textContent = 'Export Excel'
+    }
+  })
+  
+  // Chat functionality
+  function initChat(){
+    const chatCard = document.getElementById('chatCard')
+    const chatMessages = document.getElementById('chatMessages')
+    const chatInput = document.getElementById('chatInput')
+    const chatSend = document.getElementById('chatSend')
+    
+    if(!chatCard || !chatMessages || !chatInput || !chatSend){
+      console.warn('Chat elements not found')
+      return null
+    }
+    
+    return { chatCard, chatMessages, chatInput, chatSend }
+  }
+  
+  function addChatMessage(text, isUser = false){
+    const chat = initChat()
+    if(!chat) return
+    
+    const { chatMessages } = chat
+    const msg = document.createElement('div')
+    msg.style.cssText = `
+      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      ${isUser ? 
+        'background: var(--brand); color: #fff; margin-left: 40px; text-align: right;' : 
+        'background: var(--card); border: 1px solid var(--border); margin-right: 40px;'
+      }
+    `
+    
+    if(!isUser){
+      // Parse markdown-style bold
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--brand)">$1</strong>')
+      msg.innerHTML = text.replace(/\n/g, '<br>')
+    } else {
+      msg.textContent = text
+    }
+    
+    chatMessages.appendChild(msg)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+  }
+  
+  async function sendChatMessage(){
+    const chat = initChat()
+    if(!chat) return
+    
+    const { chatMessages, chatInput, chatSend } = chat
+    
+    const message = chatInput.value.trim()
+    if(!message) return
+    
+    // Show user message
+    addChatMessage(message, true)
+    chatInput.value = ''
+    chatSend.disabled = true
+    chatSend.textContent = '⏳ چاوەڕوان بە...'
+    
+    // Show loading
+    const loadingMsg = document.createElement('div')
+    loadingMsg.textContent = '🤖 AI-ەکان وەڵام دەدەنەوە...'
+    loadingMsg.style.cssText = 'text-align:center; color:var(--muted); margin:12px 0; font-style:italic;'
+    chatMessages.appendChild(loadingMsg)
+    
+    try{
+      // Prepare context - only send if data is analyzed
+      const context = state.dataPackage ? {
+        tables: state.dataPackage.tables || [],
+        summary: document.getElementById('summary')?.textContent || '',
+        insights: Array.from(document.querySelectorAll('#insights li')).map(li => li.textContent).slice(0, 5)
+      } : null
+      
+      // Send to all 3 AIs
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          message,
+          context: context
+        })
+      })
+      
+      loadingMsg.remove()
+      
+      if(!res.ok){
+        const errorText = await res.text()
+        throw new Error(`Server error: ${res.status} - ${errorText}`)
+      }
+      
+      const data = await res.json()
+      
+      if(!data.message){
+        throw new Error('هیچ وەڵامێک نەگەڕایەوە')
+      }
+      
+      // Show unified response from AI Data Analyzer
+      addChatMessage(data.message, false)
+      
+    }catch(err){
+      if(loadingMsg.parentNode) loadingMsg.remove()
+      console.error('Chat error:', err)
+      
+      let errorMsg = '❌ هەڵە: '
+      if(err.message.includes('Failed to fetch')){
+        errorMsg += 'سێرڤەرەکە کارناکات. دڵنیابە لەوەی npm start کردووە'
+      } else if(err.message.includes('Server error')){
+        errorMsg += err.message
+      } else {
+        errorMsg += err.message
+      }
+      
+      addChatMessage(errorMsg, false)
+    }finally{
+      chatSend.disabled = false
+      chatSend.textContent = '📤 ناردن'
+    }
+  }
+  
+  // Initialize chat event listeners
+  const chatElements = initChat()
+  if(chatElements){
+    const { chatSend, chatInput, chatCard } = chatElements
+    
+    chatSend.addEventListener('click', sendChatMessage)
+    chatInput.addEventListener('keypress', (e) => {
+      if(e.key === 'Enter') sendChatMessage()
+    })
+    
+    // Clear welcome message after analysis
+    const originalAnalyze = analyze
+    analyze = async function(){
+      await originalAnalyze()
+      // Clear the initial welcome message
+      const chat = initChat()
+      if(chat){
+        const welcomeMsg = chat.chatMessages.querySelector('div[style*="text-align:center"]')
+        if(welcomeMsg) welcomeMsg.remove()
+        addChatMessage('✅ داتاکانت بە سەرکەوتوویی ئەنەڵایز کران. ئێستا دەتوانیت هەر پرسیارێکم لێبکەیت دەربارەی داتاکانت! 🎉', false)
+      }
+    }
+  }
+  
+  </script>
+ </body>
+ </html>
