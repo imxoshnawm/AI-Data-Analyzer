@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
  <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -17,21 +17,21 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <style>
-   :root{--bg:#f8fafc;--card:#ffffff;--muted:#64748b;--text:#0f172a;--brand:#3b82f6;--accent:#10b981;--danger:#ef4444;--border:#e2e8f0;--input-bg:#f1f5f9}
+   :root{--bg:#f8fafc;--card:#ffffff;--muted:#64748b;--text:#0f172a;--brand:#3b82f6;--accent:#10b981;--danger:#ef4444;--border:#e2e8f0;--input-bg:#f1f5f9;--chart-h:300px;--diagram-h:320px}
    *{box-sizing:border-box;margin:0;padding:0}
    html,body{height:100%; overflow:visible}
-   body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--text);line-height:1.6}
-   .wrap{max-width:1400px;margin:0 auto;padding:20px}
+   body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--text);line-height:1.7}
+   .wrap{max-width:1200px;margin:0 auto;padding:20px}
    .grid{display:grid;grid-template-columns:1fr;gap:20px}
    @media(min-width:768px){.grid{grid-template-columns:380px 1fr}}
    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-   .title{font-weight:600;font-size:20px;margin:0 0 16px;color:var(--text)}
+   .title{font-weight:600;font-size:18px;margin:0 0 16px;color:var(--text)}
    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-   input[type="text"], input[type="password"], textarea, select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;transition:border .2s;min-height:44px}
+   input[type="text"], input[type="password"], textarea, select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 14px;font-size:13px;transition:border .2s;min-height:44px}
    @media(max-width:767px){input[type="text"], input[type="password"], textarea, select{font-size:16px;padding:14px}}
    input:focus, textarea:focus, select:focus{outline:none;border-color:var(--brand)}
    textarea{min-height:120px;resize:vertical;font-family:inherit}
-   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:500;font-size:14px;transition:all .2s;white-space:nowrap;min-height:44px}
+   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;transition:all .2s;white-space:nowrap;min-height:44px}
    @media(max-width:767px){.btn{width:100%;padding:16px 20px}}
    .btn:hover{background:var(--input-bg);transform:translateY(-1px);box-shadow:0 4px 6px rgba(0,0,0,0.05)}
    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -41,12 +41,12 @@
    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
    .drop{border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;background:var(--input-bg);color:var(--muted);cursor:pointer;transition:all .2s}
    .drop:hover{border-color:var(--brand);background:#eff6ff}
-   .pill{padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+   .pill{padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--input-bg);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;max-width:100%;overflow:hidden;text-overflow:ellipsis}
    .pill:hover{background:var(--card);border-color:var(--brand)}
    .muted{color:var(--muted);font-size:14px}
    .charts{display:grid;gap:20px;grid-template-columns:repeat(var(--chart-cols,1),1fr)}
-   @media(min-width:640px){.charts{grid-template-columns:repeat(var(--chart-cols,2),1fr)}}
-   @media(min-width:1024px){.charts{grid-template-columns:repeat(var(--chart-cols,3),1fr)}}
+   @media(min-width:640px){.charts{grid-template-columns:repeat(var(--chart-cols,1),1fr)}}
+   @media(min-width:1024px){.charts{grid-template-columns:repeat(var(--chart-cols,1),1fr)}}
    .chart-item{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
    .chart-item canvas{height:var(--item-h, var(--chart-h,300px))!important}
    .diagrams{display:grid;gap:20px;margin-top:20px;grid-template-columns:repeat(var(--diagram-cols,1),1fr)}
@@ -67,9 +67,9 @@
    .explanations li:nth-child(even):before{background:var(--accent);box-shadow:0 2px 4px rgba(16,185,129,0.3)}
    @media(max-width:767px){.explanations li{padding:14px 16px;font-size:14px}.explanations li:before{width:24px;height:24px;font-size:12px;left:-10px;top:10px}}
    .badge{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--brand);font-weight:500;font-size:13px}
-   h1{font-size:28px;font-weight:700;margin-bottom:8px;color:var(--text)}
+   h1{font-size:24px;font-weight:700;margin-bottom:8px;color:var(--text)}
    h2,h3{margin:16px 0 12px;color:var(--text)}
-   label{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;display:block}
+   label{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block}
    #chatMessages::-webkit-scrollbar{width:8px}
    #chatMessages::-webkit-scrollbar-track{background:var(--input-bg);border-radius:4px}
    #chatMessages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
@@ -83,11 +83,41 @@
    .stat-change.negative{color:var(--danger)}
    .calc-table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card);border-radius:8px;overflow:hidden}
    .calc-table th{background:var(--brand);color:#fff;padding:12px;text-align:left;font-weight:600;font-size:13px}
-   .calc-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px}
+   .calc-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);font-size:14px;word-break:break-word}
+   .calc-table th{word-break:break-word}
    .calc-table tr:last-child td{border-bottom:none}
    .calc-table tr:hover{background:var(--input-bg)}
    .calc-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
    .calc-section h4{margin:0 0 12px;color:var(--text);font-size:16px;font-weight:600;border-bottom:2px solid var(--border);padding-bottom:6px}
+   /* Scrollable data tables and collapsible sections */
+   .table-wrap{overflow:auto;max-height:420px;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+   .calc-table{min-width:560px}
+   .calc-table th{position:sticky;top:0;z-index:1}
+   .calc-section.collapsed .calc-table,.calc-section.collapsed canvas,.calc-section.collapsed p{display:none}
+   .calc-section h4{cursor:pointer;user-select:none}
+   #notes{min-height:160px;max-height:320px;padding:14px 16px;line-height:1.7}
+   @media(max-width:767px){#notes{min-height:140px;max-height:260px}}
+   @media(min-width:1024px){#notes{min-height:180px;max-height:360px}}
+  </style>
+  <style>
+   /* Responsive tweaks for better mobile/desktop experience */
+   @media(max-width:767px){
+     .wrap{padding:12px}
+     .card{padding:16px;border-radius:14px}
+     h1{font-size:20px}
+     .row{gap:10px}
+     :root{--chart-h:220px;--diagram-h:280px}
+     #chatMessages{max-height:300px}
+     .footer .row{overflow-x:auto;white-space:nowrap;padding-bottom:6px}
+     .footer .row > *{flex:0 0 auto}
+   }
+   @media(min-width:1024px){
+     :root{--chart-h:360px;--diagram-h:360px}
+   }
+   /* RTL-specific fixes */
+   [dir="rtl"] .explanations li{border-right:4px solid var(--brand);border-left:none}
+   [dir="rtl"] .explanations li:nth-child(even){border-right-color:var(--accent)}
+   [dir="rtl"] .explanations li:before{right:-12px;left:auto}
   </style>
  </head>
  <body>
@@ -102,7 +132,7 @@
      </div>
      <div id="fileList" class="row" style="margin-top:10px"></div>
      <div style="height:10px"></div>
-     <label class="muted">دەستنوسی زانیاری/کۆمێنت</label>
+     <label id="notesLabel" for="notes" class="muted">دەستنوسی زانیاری/کۆمێنت</label>
      <textarea id="notes" placeholder="باسی داتاکان بکە یان داواکاری تێبنووسە"></textarea>
      <div class="row" style="margin-top:10px">
       <button id="analyze" class="btn primary">Analyze</button>
@@ -119,22 +149,22 @@
      <!-- AI Chat Section -->
      <div id="chatCard" style="margin-top:16px">
       <h3 style="margin:0 0 16px;color:var(--brand);border-bottom:2px solid var(--border);padding-bottom:8px">
-       🤖 AI Data Analyzer v0.0.1
+        AI Data Analyzer v0.0.1
       </h3>
       <div id="chatMessages" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border)">
        <div style="text-align:center;color:var(--muted);padding:20px;font-style:italic">
-        سڵاو! من AI Data Analyzer-م. دەتوانم یارمەتیت بدەم لە شیکاری داتاکانت. پرسیارێک بکە! 🤖
+        سڵاو! من AI Data Analyzer-م. دەتوانم یارمەتیت بدەم لە شیکاری داتاکانت. پرسیارێک بکە! 
        </div>
       </div>
       <div class="row" style="gap:8px">
        <input type="text" id="chatInput" placeholder="پرسیارەکەت لێرە بنووسە..." style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text)">
-       <button id="chatSend" class="btn" style="padding:12px 24px">📤 ناردن</button>
+       <button id="chatSend" class="btn" style="padding:12px 24px"> ناردن</button>
       </div>
      </div>
      
      <!-- Counting & Calculations Dashboard -->
      <div id="calculationsWrap" style="margin-top:16px;display:none">
-      <h3 style="margin:12px 0 12px;color:var(--brand);border-bottom:2px solid var(--border);padding-bottom:6px">📊 ژمارەکاری و حیسابات</h3>
+      <h3 style="margin:12px 0 12px;color:var(--brand);border-bottom:2px solid var(--border);padding-bottom:6px"> ژمارەکاری و حیسابات</h3>
       <div id="statsGrid" class="charts" style="--chart-cols:4;margin-bottom:16px"></div>
       <div id="calculations" style="margin-top:12px"></div>
      </div>
@@ -157,7 +187,7 @@
       <div class="row">
        <span class="muted">چارتی خۆکار: Bar, Line, Pie, Histogram, Scatter</span>
        <span class="pill">Layout</span>
-       <select id="chartCols" style="width:auto"><option value="1">1 col</option><option value="2">2 cols</option><option value="3" selected>3 cols</option><option value="4">4 cols</option></select>
+       <select id="chartCols" style="width:auto"><option value="1" selected>1 col</option><option value="2">2 cols</option><option value="3">3 cols</option><option value="4">4 cols</option></select>
        <select id="chartSize" style="width:auto"><option value="240">Small</option><option value="300" selected>Medium</option><option value="380">Large</option><option value="480">XL</option></select>
        <select id="diagramSize" style="width:auto"><option value="280">Diag S</option><option value="320" selected>Diag M</option><option value="420">Diag L</option><option value="520">Diag XL</option></select>
        <span class="pill">PDF</span>
@@ -574,7 +604,7 @@
          {label: 'کۆی گشتی داهات', value: formatCurrency(totalRev), icon: '💵'},
          {label: 'کۆی گشتی خەرجی', value: formatCurrency(totalExp), icon: '💸'},
          {label: 'قازانجی گشتی', value: formatCurrency(profit), change: profit >= 0 ? 'positive' : 'negative', icon: '📈'},
-         {label: 'ڕێژەی قازانج', value: profitMargin.toFixed(2) + '%', change: profitMargin >= 0 ? 'positive' : 'negative', icon: '📊'}
+         {label: 'ڕێژەی قازانج', value: profitMargin.toFixed(2) + '%', change: profitMargin >= 0 ? 'positive' : 'negative', icon: ''}
        )
        
        // Detailed table
@@ -703,7 +733,7 @@
          section.stats.push({
            label: 'ڕێژەی قەرز/سامان',
            value: debtToAssetRatio.toFixed(2) + '%',
-           icon: '📊',
+           icon: '',
            change: debtToAssetRatio > 50 ? 'negative' : 'positive'
          })
          
@@ -754,7 +784,7 @@
        
        section.stats.push(
          {label: 'کۆی گشتی', value: formatNumber(total), icon: '👥'},
-         {label: 'ناوەند', value: formatNumber(avg), icon: '📊'},
+         {label: 'ناوەند', value: formatNumber(avg), icon: ''},
          {label: 'زۆرترین', value: formatNumber(max), icon: '⬆️'},
          {label: 'کەمترین', value: formatNumber(min), icon: '⬇️'}
        )
@@ -1056,39 +1086,46 @@
      })
      
      // Render detailed sections
-     calculations.sections.forEach(section => {
-       const sectionDiv = document.createElement('div')
-       sectionDiv.className = 'calc-section'
-       
-       let html = `<h4>${section.title}</h4>`
-       
-       section.tables?.forEach((tbl, tblIdx) => {
-        html += `<p style="font-weight:600;margin:8px 0;color:var(--text)">${tbl.title}</p>`
-        html += '<table class="calc-table">'
-        tbl.data.forEach((row, idx) => {
-          html += '<tr>'
-          row.forEach(cell => {
-            html += idx === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`
-          })
-          html += '</tr>'
-        })
-        html += '</table>'
-        
-        // Add mini chart below each table
-        const chartId = `calc-chart-${section.type}-${tblIdx}`
-        html += `<div style="margin-top:16px;"><canvas id="${chartId}" style="max-height:250px;"></canvas></div>`
-      })
-       
-       sectionDiv.innerHTML = html
-      calcDiv.appendChild(sectionDiv)
+    calculations.sections.forEach((section, secIdx) => {
+      const sectionDiv = document.createElement('div')
+      sectionDiv.className = 'calc-section'
       
-      // Create charts after DOM is updated
-      setTimeout(() => {
-        section.tables?.forEach((tbl, tblIdx) => {
-          const chartId = `calc-chart-${section.type}-${tblIdx}`
-          createCalculationChart(chartId, tbl, section.type)
+      let html = `<h4>${section.title}</h4>`
+      
+      section.tables?.forEach((tbl, tblIdx) => {
+       html += `<p style="font-weight:600;margin:8px 0;color:var(--text)">${tbl.title}</p>`
+       html += '<div class="table-wrap">'
+       html += '<table class="calc-table">'
+       tbl.data.forEach((row, idx) => {
+        html += '<tr>'
+        row.forEach(cell => {
+          html += idx === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`
         })
-      }, 100)
+        html += '</tr>'
+       })
+       html += '</table>'
+       html += '</div>'
+       
+       // Add mini chart below each table
+       const chartId = `calc-chart-${section.type}-${tblIdx}`
+       html += `<div style="margin-top:16px;"><canvas id="${chartId}" style="max-height:250px;"></canvas></div>`
+     })
+       
+      sectionDiv.innerHTML = html
+     // Collapse by default beyond first two sections
+     if(secIdx > 1){ sectionDiv.classList.add('collapsed') }
+     // Toggle collapse on header click
+     const hdr = sectionDiv.querySelector('h4')
+     if(hdr){ hdr.addEventListener('click', ()=> sectionDiv.classList.toggle('collapsed')) }
+     calcDiv.appendChild(sectionDiv)
+     
+     // Create charts after DOM is updated
+     setTimeout(() => {
+       section.tables?.forEach((tbl, tblIdx) => {
+         const chartId = `calc-chart-${section.type}-${tblIdx}`
+         createCalculationChart(chartId, tbl, section.type)
+       })
+     }, 100)
     })
   }
   
@@ -1106,7 +1143,20 @@
     const data = tableData.data.slice(1).filter(row => row[0] && row[1] && row[0] !== '')
     if(data.length === 0) return
     
-    const labels = data.map(row => String(row[0]).substring(0, 30)) // Limit label length
+    const wrap = (t)=>{
+      const s = String(t||'')
+      if(s.length <= 18) return s
+      const parts = s.split(' ')
+      let line1 = ''
+      let line2 = ''
+      for(const p of parts){
+        if((line1 + ' ' + p).trim().length <= 18){ line1 = (line1 ? line1 + ' ' : '') + p }
+        else if((line2 + ' ' + p).trim().length <= 18){ line2 = (line2 ? line2 + ' ' : '') + p }
+        else { line2 = (line2 ? line2 + ' ' : '') + p }
+      }
+      return [line1 || s.slice(0,18), line2 || s.slice(18,36)]
+    }
+    const labels = data.map(row => wrap(row[0]))
     const values = data.map(row => {
       const val = String(row[1]).replace(/[,%]/g, '')
       return parseFloat(val) || 0
@@ -1142,16 +1192,12 @@
         responsive: true,
         maintainAspectRatio: true,
         aspectRatio: 2.5,
+        devicePixelRatio: Math.min(Math.max(window.devicePixelRatio || 1, 2), 3),
         plugins: {
           legend: {
             display: chartType === 'doughnut',
             position: 'right',
-            labels: {
-              color: '#475569',
-              font: { size: 11, weight: '600' },
-              padding: 10,
-              boxWidth: 10
-            }
+            labels: { color: '#0f172a', font: { size: 12, weight: '700' }, padding: 10, boxWidth: 10 }
           },
           tooltip: {
             backgroundColor: 'rgba(15, 23, 42, 0.95)',
@@ -1169,21 +1215,10 @@
           }
         },
         scales: chartType !== 'doughnut' ? {
-          x: {
-            ticks: { 
-              color: '#64748b', 
-              font: { size: 10 },
-              maxRotation: 45,
-              minRotation: 0
-            },
-            grid: { display: false }
-          },
+          x: { ticks: { color: '#111827', font: { size: 13, weight: '700' }, maxRotation: 0, minRotation: 0, autoSkip: false }, grid: { display: false } },
           y: {
-            ticks: { 
-              color: '#64748b', 
-              font: { size: 10 }
-            },
-            grid: { color: '#e2e8f0', lineWidth: 1 }
+            ticks: { color: '#111827', font: { size: 12, weight: '600' } },
+            grid: { color: '#eef2f7', lineWidth: 1 }
           }
         } : {}
       }
@@ -1204,58 +1239,39 @@
    function applyLayout(){
      const chartsWrap = document.getElementById('charts')
      const diagramsWrap = document.getElementById('diagrams')
-     chartsWrap.style.setProperty('--chart-cols', state.chartCols || 3)
+     chartsWrap.style.setProperty('--chart-cols', state.chartCols || 1)
      chartsWrap.style.setProperty('--chart-h', (state.chartH || 300)+'px')
-     diagramsWrap.style.setProperty('--diagram-cols', Math.min(3, state.chartCols||2))
+     diagramsWrap.style.setProperty('--diagram-cols', Math.min(3, state.chartCols||1))
      diagramsWrap.style.setProperty('--diagram-h', Math.max(280, (state.chartH||300))+'px')
    }
 
    function renderCharts(spec){
-     // cleanup
-     state.chartsInstances.forEach(c=>{try{c.destroy()}catch{}})
-     state.chartsInstances = []
-     chartsEl.innerHTML = ''
-     const charts = Array.isArray(spec.charts) ? spec.charts : []
-     charts.forEach((cSpec, idx)=>{
-       const wrap = document.createElement('div')
-       wrap.className = 'chart-item'
-       const titleRow = document.createElement('div'); titleRow.style.display='flex'; titleRow.style.alignItems='center'; titleRow.style.justifyContent='space-between';
-       const h = document.createElement('h4'); h.textContent = cSpec.title || `Chart ${idx+1}`; h.style.margin='6px 2px'
-       const sizeSel = document.createElement('select'); sizeSel.innerHTML = '<option value="240">S</option><option value="300" selected>M</option><option value="380">L</option><option value="480">XL</option>';
-       sizeSel.style.background='#0f1115'; sizeSel.style.color='#cbd5e1'; sizeSel.style.border='1px solid #283041'; sizeSel.style.borderRadius='8px'; sizeSel.style.padding='6px'; sizeSel.style.height='34px'; sizeSel.style.margin='2px'; sizeSel.addEventListener('change', (e)=>{ wrap.style.setProperty('--item-h', e.target.value+'px') })
-       titleRow.appendChild(h); titleRow.appendChild(sizeSel)
-       const canvas = document.createElement('canvas')
-       canvas.style.imageRendering = '-webkit-optimize-contrast'
-       canvas.style.imageRendering = 'crisp-edges'
-       wrap.appendChild(titleRow); wrap.appendChild(canvas); chartsEl.appendChild(wrap)
-      
-      // Set very high DPI for sharp rendering
-      const ctx = canvas.getContext('2d', { 
-        alpha: false, 
-        willReadFrequently: false,
-        desynchronized: true
-      })
-      const dpr = Math.max(window.devicePixelRatio || 2, 4) // Increased to 4 for better quality
-      
-      // Colorful palette for better visualization
-      const colorPalette = [
-        '#3b82f6', // Blue
-        '#10b981', // Green
-        '#f59e0b', // Amber
-        '#ef4444', // Red
-        '#8b5cf6', // Purple
-        '#ec4899', // Pink
-        '#06b6d4', // Cyan
-        '#f97316', // Orange
-        '#6366f1', // Indigo
-        '#14b8a6', // Teal
-        '#a855f7', // Violet
-        '#84cc16', // Lime
-        '#f43f5e', // Rose
-        '#0ea5e9', // Sky
-        '#22c55e'  // Emerald
-      ]
-      
+    // cleanup
+    state.chartsInstances.forEach(c=>{try{c.destroy()}catch{}})
+    state.chartsInstances = []
+    chartsEl.innerHTML = ''
+    const charts = Array.isArray(spec.charts) ? spec.charts : []
+    const MAX_CHARTS = 12
+    const initial = charts.slice(0, MAX_CHARTS)
+    const rest = charts.slice(MAX_CHARTS)
+
+    const renderOne = (cSpec, idx)=>{
+      const wrap = document.createElement('div')
+      wrap.className = 'chart-item'
+      const titleRow = document.createElement('div'); titleRow.style.display='flex'; titleRow.style.alignItems='center'; titleRow.style.justifyContent='space-between'
+      const h = document.createElement('h4'); h.textContent = cSpec.title || `Chart ${idx+1}`; h.style.margin='6px 2px'
+      const sizeSel = document.createElement('select'); sizeSel.innerHTML = '<option value="240">S</option><option value="300" selected>M</option><option value="380">L</option><option value="480">XL</option>'
+      sizeSel.style.background='#0f1115'; sizeSel.style.color='#cbd5e1'; sizeSel.style.border='1px solid #283041'; sizeSel.style.borderRadius='8px'; sizeSel.style.padding='6px'; sizeSel.style.height='34px'; sizeSel.style.margin='2px'; sizeSel.addEventListener('change', (e)=>{ wrap.style.setProperty('--item-h', e.target.value+'px') })
+      titleRow.appendChild(h); titleRow.appendChild(sizeSel)
+      const canvas = document.createElement('canvas')
+      canvas.style.imageRendering = '-webkit-optimize-contrast'
+      canvas.style.imageRendering = 'crisp-edges'
+      wrap.appendChild(titleRow); wrap.appendChild(canvas); chartsEl.appendChild(wrap)
+
+      const ctx = canvas.getContext('2d', { alpha:false, willReadFrequently:false, desynchronized:true })
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3)
+
+      const colorPalette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316','#6366f1','#14b8a6','#a855f7','#84cc16','#f43f5e','#0ea5e9','#22c55e']
       const labels = cSpec.labels || []
       const datasets = (cSpec.datasets||[]).map((ds,i)=>({
         label: ds.label || `Series ${i+1}`,
@@ -1266,139 +1282,77 @@
         tension: 0.4
       }))
       let type = cSpec.type
-      
+
       const commonOptions = {
         maintainAspectRatio: false,
         devicePixelRatio: dpr,
         responsive: true,
-        animation: { duration: 750 },
-        elements: {
-          point: { radius: 4, hitRadius: 8, hoverRadius: 6 },
-          line: { borderWidth: 3, tension: 0.4 },
-          bar: { borderWidth: 0 }
-        },
+        animation: { duration: 500 },
+        elements: { point:{radius:3,hitRadius:8,hoverRadius:5}, line:{borderWidth:3,tension:0.4}, bar:{borderWidth:0} },
         plugins: {
-          legend: {
-            labels: {
-              color: '#475569',
-              font: { size: 14, weight: '600', family: 'Inter, sans-serif' },
-              padding: 15,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              boxWidth: 12,
-              boxHeight: 12
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            titleColor: '#f1f5f9',
-            bodyColor: '#cbd5e1',
-            borderColor: '#334155',
-            borderWidth: 1,
-            padding: 14,
-            cornerRadius: 8,
-            titleFont: { size: 15, weight: '700' },
-            bodyFont: { size: 14 },
-            displayColors: true,
-            boxWidth: 12,
-            boxHeight: 12
-          },
-          datalabels: {
-            display: type === 'bar' || type === 'pie' || type === 'doughnut',
-            color: type === 'bar' ? '#1f2937' : '#fff',
-            anchor: type === 'bar' ? 'end' : 'center',
-            align: type === 'bar' ? 'top' : 'center',
-            font: {
-              weight: 'bold',
-              size: type === 'bar' ? 12 : 14
-            },
-            formatter: (value, ctx) => {
-              if(type === 'bar'){
-                return value
-              }
-              // For pie/doughnut, show percentage
-              const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
-              const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
-              return percentage + '%'
-            }
-          }
+          legend: { labels:{ color:'#0f172a', font:{ size:13, weight:'700', family:'Inter, sans-serif' }, padding:12, usePointStyle:true, pointStyle:'circle', boxWidth:12, boxHeight:12 } },
+          tooltip: { backgroundColor:'rgba(15,23,42,0.95)', titleColor:'#f1f5f9', bodyColor:'#cbd5e1', borderColor:'#334155', borderWidth:1, padding:10, cornerRadius:8, titleFont:{size:14,weight:'700'}, bodyFont:{size:13}, displayColors:true, boxWidth:12, boxHeight:12 },
+          datalabels: { display: type==='bar'||type==='pie'||type==='doughnut', color: type==='bar' ? '#1f2937' : '#fff', anchor: type==='bar' ? 'end' : 'center', align: type==='bar' ? 'top' : 'center', font:{weight:'bold', size: type==='bar'?11:13}, formatter:(value,ctx)=>{ if(type==='bar'){return value} const total = ctx.dataset.data.reduce((a,b)=>a+b,0); const p = total>0?((value/total)*100).toFixed(1):'0'; return p+'%'} }
         },
-        scales: type !== 'pie' && type !== 'doughnut' ? {
-          x: {
-            ticks: { 
-              color: '#64748b', 
-              font: { size: 13, weight: '500', family: 'Inter, sans-serif' },
-              padding: 8
-            },
-            grid: { color: '#e2e8f0', lineWidth: 1.5, drawBorder: true }
-          },
-          y: {
-            ticks: { 
-              color: '#64748b', 
-              font: { size: 13, weight: '500', family: 'Inter, sans-serif' },
-              padding: 8
-            },
-            grid: { color: '#e2e8f0', lineWidth: 1.5, drawBorder: true }
-          }
+        scales: type!=='pie' && type!=='doughnut' ? { 
+          x:{ 
+            ticks:{ color:'#0f172a', font:{size:13,weight:'700',family:'Inter, sans-serif'}, padding:8, maxRotation:0, minRotation:0, callback:(v)=>{ const l=this.getLabelForValue?this.getLabelForValue(v):labels[v]||''; return (l||'').length>18?l.slice(0,16)+'…':l } }, 
+            grid:{ color:'#eef2f7', lineWidth:1 } 
+          }, 
+          y:{ 
+            ticks:{ color:'#0f172a', font:{size:12,weight:'600',family:'Inter, sans-serif'}, padding:8 }, 
+            grid:{ color:'#eef2f7', lineWidth:1 } 
+          } 
         } : {}
       }
-      
+
       if(type==='histogram'){
         const values = datasets[0]?.data || []
         const bins = Math.max(5, Math.ceil(Math.sqrt(values.length)))
         const min = Math.min(...values), max = Math.max(...values)
         const step = (max-min)/bins || 1
         const counts = new Array(bins).fill(0)
-        values.forEach(v=>{ const idx = Math.min(bins-1, Math.floor((v-min)/step)); counts[idx]++ })
+        values.forEach(v=>{ const i = Math.min(bins-1, Math.floor((v-min)/step)); counts[i]++ })
         const lbls = counts.map((_,i)=>`${(min+i*step).toFixed(1)}–${(min+(i+1)*step).toFixed(1)}`)
         type = 'bar'
-        state.chartsInstances.push(new Chart(canvas, {
-          type, 
-          data: {
-            labels: lbls, 
-            datasets: [{
-              label: cSpec.title||'Histogram', 
-              data: counts, 
-              backgroundColor: colorPalette.map(c => c + '80'), 
-              borderColor: colorPalette,
-              borderWidth: 2
-            }]
-          }, 
-          options: commonOptions
-        }))
+        state.chartsInstances.push(new Chart(ctx, { type, data:{ labels:lbls, datasets:[{ label:cSpec.title||'Histogram', data:counts, backgroundColor: colorPalette.map(c=>c+'80'), borderColor: colorPalette, borderWidth:2 }] }, options: commonOptions }))
         return
       }
-      
-      // Special handling for pie/doughnut charts - use multiple colors
-      if(type === 'pie' || type === 'doughnut'){
+
+      if(type==='pie' || type==='doughnut'){
         const dataValues = datasets[0]?.data || []
-        const backgroundColors = dataValues.map((_, i) => colorPalette[i % colorPalette.length] + 'CC')
-        const borderColors = dataValues.map((_, i) => colorPalette[i % colorPalette.length])
-        
-        datasets[0].backgroundColor = backgroundColors
-        datasets[0].borderColor = borderColors
+        datasets[0].backgroundColor = dataValues.map((_,i)=>colorPalette[i % colorPalette.length] + 'CC')
+        datasets[0].borderColor = dataValues.map((_,i)=>colorPalette[i % colorPalette.length])
         datasets[0].borderWidth = 3
         datasets[0].hoverOffset = 15
-        
-        // Enhanced options for pie/doughnut
         commonOptions.plugins.legend.position = 'right'
-        commonOptions.plugins.legend.labels.padding = 20
-        commonOptions.plugins.legend.labels.font.size = 13
-        commonOptions.plugins.tooltip.callbacks = {
-          label: function(context) {
-            const label = context.label || ''
-            const value = context.parsed || 0
-            const total = context.dataset.data.reduce((a, b) => a + b, 0)
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
-            return `${label}: ${value} (${percentage}%)`
-          }
-        }
+        commonOptions.plugins.legend.labels.padding = 16
+        commonOptions.plugins.legend.labels.font.size = 12
       }
-      
-      state.chartsInstances.push(new Chart(canvas, {type, data:{labels, datasets}, options: commonOptions}))
-     })
-     applyLayout()
-   }
+
+      state.chartsInstances.push(new Chart(ctx, { type, data:{ labels, datasets }, options: commonOptions }))
+    }
+
+    initial.forEach((c,i)=>renderOne(c,i))
+    if(rest.length){
+      const moreWrap = document.createElement('div'); moreWrap.style.textAlign='center'; moreWrap.style.margin='8px 0'
+      const btn = document.createElement('button'); btn.className='btn'; btn.textContent=`Show more charts (${rest.length})`
+      btn.addEventListener('click', ()=>{
+        btn.disabled = true
+        const queue = [...rest]
+        const step = ()=>{
+          const batch = queue.splice(0, 6)
+          batch.forEach((c,i)=>renderOne(c, initial.length + i))
+          if(queue.length){ if(window.requestIdleCallback){ requestIdleCallback(step) } else { setTimeout(step, 50) } } else { moreWrap.remove() }
+        }
+        step()
+      })
+      moreWrap.appendChild(btn)
+      chartsEl.parentElement.insertBefore(moreWrap, chartsEl.nextSibling)
+    }
+
+    applyLayout()
+  }
 
    
 
@@ -1451,8 +1405,8 @@
    }
 
    analyzeBtn.addEventListener('click', analyze)
-   state.chartCols = 3; state.chartH = 300
-   document.getElementById('chartCols').addEventListener('change', (e)=>{ state.chartCols = parseInt(e.target.value,10)||3; applyLayout() })
+   state.chartCols = 1; state.chartH = 300
+  document.getElementById('chartCols').addEventListener('change', (e)=>{ state.chartCols = parseInt(e.target.value,10)||1; applyLayout() })
    document.getElementById('chartSize').addEventListener('change', (e)=>{ state.chartH = parseInt(e.target.value,10)||300; applyLayout() })
    document.getElementById('diagramSize').addEventListener('change', (e)=>{ state.chartH = state.chartH; state.diagramH = parseInt(e.target.value,10)||320; document.getElementById('diagrams').style.setProperty('--diagram-h', state.diagramH+'px') })
 
@@ -1620,7 +1574,7 @@
         yPos = margin
         
         // Kurdish title as image
-        const titleHeight = await addKurdishText('📊 ژمارەکاری و حیسابات', 18, true, margin, yPos, contentWidth)
+        const titleHeight = await addKurdishText(' ژمارەکاری و حیسابات', 18, true, margin, yPos, contentWidth)
         yPos += titleHeight + 2
         pdf.setLineWidth(0.5)
         pdf.setDrawColor(59, 130, 246)
@@ -1985,7 +1939,7 @@
     
     // Show loading
     const loadingMsg = document.createElement('div')
-    loadingMsg.textContent = '🤖 AI-ەکان وەڵام دەدەنەوە...'
+    loadingMsg.textContent = ' AI-ەکان وەڵام دەدەنەوە...'
     loadingMsg.style.cssText = 'text-align:center; color:var(--muted); margin:12px 0; font-style:italic;'
     chatMessages.appendChild(loadingMsg)
     
@@ -2070,3 +2024,4 @@
   </script>
  </body>
  </html>
+-
